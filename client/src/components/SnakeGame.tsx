@@ -25,17 +25,34 @@ export default function SnakeGame() {
   const snakeRef = useRef<Position[]>([{ x: 10, y: 10 }]);
   const directionRef = useRef<Direction>('RIGHT');
   const nextDirectionRef = useRef<Direction>('RIGHT');
-  const foodRef = useRef<Position>(generateFood());
+  const foodRef = useRef<Position>({ x: 15, y: 10 });
   const gameLoopRef = useRef<number | null>(null);
   
-  const { playHit, playSuccess } = useAudio();
+  const { playHit, playSuccess, backgroundMusic } = useAudio();
 
-  function generateFood(): Position {
-    return {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE)
-    };
-  }
+  const generateFood = useCallback((): Position => {
+    let newFood: Position;
+    let attempts = 0;
+    const maxAttempts = 100;
+    
+    do {
+      newFood = {
+        x: Math.floor(Math.random() * GRID_SIZE),
+        y: Math.floor(Math.random() * GRID_SIZE)
+      };
+      attempts++;
+      
+      const isOnSnake = snakeRef.current.some(
+        segment => segment.x === newFood.x && segment.y === newFood.y
+      );
+      
+      if (!isOnSnake) {
+        return newFood;
+      }
+    } while (attempts < maxAttempts);
+    
+    return newFood;
+  }, []);
 
   const checkCollision = useCallback((head: Position): boolean => {
     if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
@@ -95,7 +112,7 @@ export default function SnakeGame() {
     }
 
     snakeRef.current = newSnake;
-  }, [checkCollision, highScore, playHit, playSuccess]);
+  }, [checkCollision, generateFood, highScore, playHit, playSuccess]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -166,6 +183,14 @@ export default function SnakeGame() {
   }, [gameState, gameLoop]);
 
   useEffect(() => {
+    return () => {
+      if (gameLoopRef.current) {
+        clearInterval(gameLoopRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     draw();
   }, [draw]);
 
@@ -202,6 +227,12 @@ export default function SnakeGame() {
     foodRef.current = generateFood();
     setScore(0);
     setGameState('playing');
+    
+    if (backgroundMusic && backgroundMusic.paused) {
+      backgroundMusic.play().catch(error => {
+        console.log("Background music play prevented:", error);
+      });
+    }
   };
 
   const restartGame = () => {
