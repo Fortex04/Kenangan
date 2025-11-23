@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Plus, Edit } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 import type { Student } from "@shared/schema";
 
 export default function StudentsPage() {
+  const { theme } = useTheme();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -102,13 +104,17 @@ export default function StudentsPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className={`flex items-center justify-center h-screen ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+        Loading...
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Daftar Siswa/Siswi</h1>
+        <h1 className={`text-3xl font-bold ${theme === "dark" ? "text-white" : "text-gray-800"}`}>Daftar Siswa/Siswi</h1>
         <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
             <Button>
@@ -121,6 +127,9 @@ export default function StudentsPage() {
               <DialogTitle>
                 {editingStudent ? "Edit Siswa" : "Tambah Siswa Baru"}
               </DialogTitle>
+              <DialogDescription>
+                {editingStudent ? "Ubah data siswa di form di bawah" : "Isi form di bawah untuk menambah siswa baru ke daftar"}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -190,7 +199,7 @@ export default function StudentsPage() {
           </Table>
 
           {students.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className={`text-center py-12 ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>
               Belum ada data siswa. Tambahkan siswa pertama Anda!
             </div>
           )}

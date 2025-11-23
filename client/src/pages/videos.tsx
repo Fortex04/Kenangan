@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 import type { Video } from "@shared/schema";
 
 export default function VideosPage() {
+  const { theme } = useTheme();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -71,13 +73,17 @@ export default function VideosPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className={`flex items-center justify-center h-screen ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+        Loading...
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Album Video</h1>
+        <h1 className={`text-3xl font-bold ${theme === "dark" ? "text-white" : "text-gray-800"}`}>Album Video</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -88,6 +94,9 @@ export default function VideosPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Tambah Video Baru</DialogTitle>
+              <DialogDescription>
+                Isi form di bawah untuk menambah video baru ke album kenangan kelas
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -157,7 +166,7 @@ export default function VideosPage() {
       </div>
 
       {videos.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className={`text-center py-12 ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>
           Belum ada video. Tambahkan video pertama Anda!
         </div>
       )}
