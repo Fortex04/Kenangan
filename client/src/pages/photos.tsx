@@ -39,6 +39,7 @@ export default function PhotosPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [resolvedUrls, setResolvedUrls] = useState<Record<number, string>>({});
   const [zoom, setZoom] = useState(1);
@@ -291,9 +292,11 @@ export default function PhotosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
     try {
       if (!formData.file) {
         console.error("No file selected");
+        setUploading(false);
         return;
       }
 
@@ -339,6 +342,8 @@ export default function PhotosPage() {
       }
     } catch (error) {
       console.error("Failed to add photo:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -389,6 +394,7 @@ export default function PhotosPage() {
                   id="file"
                   type="file"
                   accept="image/*"
+                  disabled={uploading}
                   onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
                 />
               </div>
@@ -398,11 +404,12 @@ export default function PhotosPage() {
                 <Textarea
                   id="description"
                   value={formData.description}
+                  disabled={uploading}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={!formData.file}>
-                Simpan
+              <Button type="submit" className="w-full" disabled={!formData.file || uploading}>
+                {uploading ? "Menyimpan..." : "Simpan"}
               </Button>
             </form>
           </DialogContent>
