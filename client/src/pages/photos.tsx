@@ -15,7 +15,6 @@ export default function PhotosPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    title: "",
     description: "",
     url: "",
   });
@@ -49,7 +48,7 @@ export default function PhotosPage() {
         body: JSON.stringify(formData),
       });
       if (response.ok) {
-        setFormData({ title: "", description: "", url: "" });
+        setFormData({ description: "", url: "" });
         setOpen(false);
         fetchPhotos();
       }
@@ -100,15 +99,6 @@ export default function PhotosPage() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="title">Judul</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
                 <Label htmlFor="url">URL Foto</Label>
                 <Input
                   id="url"
@@ -136,26 +126,24 @@ export default function PhotosPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {photos.map((photo) => (
           <Card key={photo.id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-start">
-                <span>{photo.title}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(photo.id)}
-                >
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-0 relative group">
               <img
                 src={photo.url}
                 alt={photo.title}
-                className="w-full h-48 object-cover rounded-md mb-2"
+                className="w-full h-48 object-cover rounded-md"
               />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDelete(photo.id)}
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
               {photo.description && (
-                <p className="text-sm text-gray-600">{photo.description}</p>
+                <div className="p-3">
+                  <p className="text-sm text-gray-600">{photo.description}</p>
+                </div>
               )}
             </CardContent>
           </Card>

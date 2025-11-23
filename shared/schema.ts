@@ -33,16 +33,17 @@ export type Student = typeof students.$inferSelect;
 
 export const photos = pgTable("photos", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: text("title"),
   description: text("description"),
   url: text("url").notNull(),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
 export const insertPhotoSchema = createInsertSchema(photos).pick({
-  title: true,
   description: true,
   url: true,
+}).extend({
+  title: z.string().optional(),
 });
 
 export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
