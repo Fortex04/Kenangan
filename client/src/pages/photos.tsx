@@ -82,7 +82,7 @@ export default function PhotosPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className={`text-3xl font-bold ${theme === "dark" ? "text-white" : "text-gray-800"}`}>Album Foto</h1>
+        <h1 className={`text-3xl font-bold ${theme === "dark" ? "text-white" : "text-gray-800"}`}>Foto</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -123,30 +123,34 @@ export default function PhotosPage() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid gap-3" style={{
+        gridTemplateColumns: `repeat(auto-fit, minmax(${photos.length < 5 ? '280px' : photos.length < 15 ? '220px' : '180px'}, 1fr))`
+      }}>
         {photos.map((photo) => (
-          <Card key={photo.id}>
-            <CardContent className="p-0 relative group">
-              <img
-                src={photo.url}
-                alt={photo.title}
-                className="w-full h-48 object-cover rounded-md"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(photo.id)}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
-              >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </Button>
-              {photo.description && (
-                <div className="p-3">
-                  <p className="text-sm text-gray-600">{photo.description}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div key={photo.id} className="relative group rounded-md overflow-hidden bg-gray-200">
+            <img
+              src={photo.url}
+              alt={photo.title}
+              className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
+              }}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDelete(photo.id)}
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+            {photo.description && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <p className="text-sm text-white line-clamp-2">{photo.description}</p>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
