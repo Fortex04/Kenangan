@@ -98,35 +98,42 @@ export default function PhotosPage() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && touchStateRef.current.isZooming) {
-      // Pinch zoom
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.hypot(
-        touch2.clientX - touch1.clientX,
-        touch2.clientY - touch1.clientY
-      );
-      
-      if (touchStateRef.current.prevDistance > 0) {
-        const scale = distance / touchStateRef.current.prevDistance;
-        setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
+    if (e.touches.length === 2) {
+      // Pinch zoom (only if we started with 2 fingers)
+      if (touchStateRef.current.isZooming) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        
+        if (touchStateRef.current.prevDistance > 0) {
+          const scale = distance / touchStateRef.current.prevDistance;
+          setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
+        }
+        touchStateRef.current.prevDistance = distance;
       }
-      touchStateRef.current.prevDistance = distance;
-    } else if (e.touches.length === 1 && touchStateRef.current.isPanning && zoom > 1) {
-      // Drag pan (only when zoomed)
-      const touch = e.touches[0];
-      const deltaX = (touch.clientX - touchStateRef.current.prevX) * 0.8;
-      const deltaY = (touch.clientY - touchStateRef.current.prevY) * 0.8;
-      
-      setPanX(prev => prev + deltaX);
-      setPanY(prev => prev + deltaY);
-      
-      touchStateRef.current.prevX = touch.clientX;
-      touchStateRef.current.prevY = touch.clientY;
-    } else if (e.touches.length === 1 && touchStateRef.current.isZooming) {
-      // Transitioning from 2-finger to 1-finger: stop zoom, don't start pan
-      touchStateRef.current.isZooming = false;
-      touchStateRef.current.isPanning = false;
+    } else if (e.touches.length === 1) {
+      // Handle 1 finger
+      if (touchStateRef.current.isZooming) {
+        // Transitioning from 2-finger to 1-finger: initialize pan coordinates
+        touchStateRef.current.prevX = e.touches[0].clientX;
+        touchStateRef.current.prevY = e.touches[0].clientY;
+        touchStateRef.current.isZooming = false;
+        touchStateRef.current.isPanning = true;
+      } else if (touchStateRef.current.isPanning && zoom > 1) {
+        // Continue panning
+        const touch = e.touches[0];
+        const deltaX = (touch.clientX - touchStateRef.current.prevX) * 0.8;
+        const deltaY = (touch.clientY - touchStateRef.current.prevY) * 0.8;
+        
+        setPanX(prev => prev + deltaX);
+        setPanY(prev => prev + deltaY);
+        
+        touchStateRef.current.prevX = touch.clientX;
+        touchStateRef.current.prevY = touch.clientY;
+      }
     }
   };
 
