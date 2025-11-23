@@ -96,12 +96,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // If we found an image URL, optimize it
+      // If we found an image URL, use full quality parameters
       if (imageUrl) {
         if (imageUrl.includes('lh3.googleusercontent.com') || imageUrl.includes('googleusercontent.com')) {
-          if (!imageUrl.includes('=w')) {
-            return imageUrl + (imageUrl.includes('?') ? '&' : '?') + 'w=1000';
-          }
+          // Remove any existing size parameters and add full quality parameters
+          let cleanUrl = imageUrl;
+          
+          // Remove existing width/height/quality parameters
+          cleanUrl = cleanUrl.replace(/[?&](w|h|d|s)=\d+/g, '');
+          
+          // Add parameters for maximum quality:
+          // Use w=4096 for high resolution and s0 for original size
+          const separator = cleanUrl.includes('?') ? '&' : '?';
+          return cleanUrl + separator + 'w=4096&s0';
         }
         return imageUrl;
       }

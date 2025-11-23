@@ -15,23 +15,15 @@ const getResolvedImageUrl = async (url: string, isFullscreen: boolean = false): 
     let resolvedUrl = url;
     
     if (url.includes('photos.app.goo.gl')) {
+      // Backend already resolves to full quality, just get it
       const response = await fetch(`/api/photos/resolve-url?url=${encodeURIComponent(url)}`);
       if (response.ok) {
         const data = await response.json();
         resolvedUrl = data.url;
       }
-    }
-    
-    // If it's already a googleusercontent URL, optimize it
-    if (resolvedUrl.includes('lh3.googleusercontent.com') || resolvedUrl.includes('googleusercontent.com')) {
-      // Use high quality for fullscreen, medium for thumbnails
-      const width = isFullscreen ? 2560 : 800;
-      if (!resolvedUrl.includes('=w')) {
-        resolvedUrl = resolvedUrl + (resolvedUrl.includes('?') ? '&' : '?') + `w=${width}`;
-      } else {
-        // Replace existing width with new one
-        resolvedUrl = resolvedUrl.replace(/[?&]w=\d+/, `&w=${width}`);
-      }
+    } else if (!isFullscreen && !resolvedUrl.includes('=w') && (resolvedUrl.includes('lh3.googleusercontent.com') || resolvedUrl.includes('googleusercontent.com'))) {
+      // Only add width param for thumbnail if not already present
+      resolvedUrl = resolvedUrl + (resolvedUrl.includes('?') ? '&' : '?') + 'w=800';
     }
     
     // Return proxy URL to bypass CORS
