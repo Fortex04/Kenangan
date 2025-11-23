@@ -52,9 +52,13 @@ export default function PhotosPage() {
     url: "",
   });
 
-  // Touch state tracking - only for zoom
+  // Touch state tracking
   const touchStateRef = useRef({
     prevDistance: 0,
+    prevX: 0,
+    prevY: 0,
+    isZooming: false,
+    isDragging: false,
   });
 
   // Mouse state tracking - for pan on desktop
@@ -81,9 +85,10 @@ export default function PhotosPage() {
     setPanY(0);
   };
 
-  // Only handle 2-finger zoom - NO pan on touch
+  // Handle touch - both zoom and drag
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Start zoom gesture
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -91,12 +96,20 @@ export default function PhotosPage() {
         touch2.clientY - touch1.clientY
       );
       touchStateRef.current.prevDistance = distance;
+      touchStateRef.current.isZooming = true;
+      touchStateRef.current.isDragging = false;
+    } else if (e.touches.length === 1 && zoom > 1) {
+      // Start drag gesture (only when zoomed)
+      touchStateRef.current.prevX = e.touches[0].clientX;
+      touchStateRef.current.prevY = e.touches[0].clientY;
+      touchStateRef.current.isDragging = true;
+      touchStateRef.current.isZooming = false;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      // Pinch zoom ONLY
+    if (e.touches.length === 2 && touchStateRef.current.isZooming) {
+      // Pinch zoom
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -109,11 +122,26 @@ export default function PhotosPage() {
         setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
       }
       touchStateRef.current.prevDistance = distance;
+    } else if (e.touches.length === 1 && touchStateRef.current.isDragging && zoom > 1) {
+      // Drag pan
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStateRef.current.prevX;
+      const deltaY = touch.clientY - touchStateRef.current.prevY;
+      
+      setPanX(prev => prev + deltaX);
+      setPanY(prev => prev + deltaY);
+      
+      touchStateRef.current.prevX = touch.clientX;
+      touchStateRef.current.prevY = touch.clientY;
     }
   };
 
   const handleTouchEnd = () => {
     touchStateRef.current.prevDistance = 0;
+    touchStateRef.current.prevX = 0;
+    touchStateRef.current.prevY = 0;
+    touchStateRef.current.isZooming = false;
+    touchStateRef.current.isDragging = false;
   };
 
   // Mouse pan - desktop only
