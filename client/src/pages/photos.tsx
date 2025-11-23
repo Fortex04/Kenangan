@@ -52,12 +52,11 @@ export default function PhotosPage() {
     url: "",
   });
 
-  // Touch state tracking using refs
+  // Touch state tracking - simplified
   const touchStateRef = useRef({
-    initialDistance: null as number | null,
-    lastX: null as number | null,
-    lastY: null as number | null,
-    activeGesture: null as 'zoom' | 'pan' | null,
+    prevDistance: 0,
+    prevX: 0,
+    prevY: 0,
   });
 
   const openPhotoViewer = (photo: Photo) => {
@@ -74,49 +73,25 @@ export default function PhotosPage() {
     setPanY(0);
   };
 
-  // Handle touch start - detect gesture type
+  // Simplified touch handling
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // Two fingers: prepare for zoom
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
         touch2.clientX - touch1.clientX,
         touch2.clientY - touch1.clientY
       );
-      touchStateRef.current.initialDistance = distance;
-      touchStateRef.current.activeGesture = 'zoom';
-      touchStateRef.current.lastX = null;
-      touchStateRef.current.lastY = null;
+      touchStateRef.current.prevDistance = distance;
     } else if (e.touches.length === 1) {
-      // One finger: prepare for pan
-      if (zoom > 1) {
-        const touch = e.touches[0];
-        touchStateRef.current.lastX = touch.clientX;
-        touchStateRef.current.lastY = touch.clientY;
-        touchStateRef.current.activeGesture = 'pan';
-        touchStateRef.current.initialDistance = null;
-      }
+      touchStateRef.current.prevX = e.touches[0].clientX;
+      touchStateRef.current.prevY = e.touches[0].clientY;
     }
   };
 
-  // Handle touch move - execute gesture
   const handleTouchMove = (e: React.TouchEvent) => {
-    // If finger count doesn't match gesture type, reset
-    if (touchStateRef.current.activeGesture === 'zoom' && e.touches.length !== 2) {
-      touchStateRef.current.activeGesture = null;
-      touchStateRef.current.initialDistance = null;
-      return;
-    }
-    if (touchStateRef.current.activeGesture === 'pan' && e.touches.length !== 1) {
-      touchStateRef.current.activeGesture = null;
-      touchStateRef.current.lastX = null;
-      touchStateRef.current.lastY = null;
-      return;
-    }
-
-    if (touchStateRef.current.activeGesture === 'zoom' && e.touches.length === 2) {
-      // Two fingers: pinch zoom
+    if (e.touches.length === 2) {
+      // Pinch zoom
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -124,35 +99,29 @@ export default function PhotosPage() {
         touch2.clientY - touch1.clientY
       );
       
-      const initialDistance = touchStateRef.current.initialDistance;
-      if (initialDistance && initialDistance > 0) {
-        const scale = distance / initialDistance;
+      if (touchStateRef.current.prevDistance > 0) {
+        const scale = distance / touchStateRef.current.prevDistance;
         setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
-        touchStateRef.current.initialDistance = distance;
       }
-    } else if (touchStateRef.current.activeGesture === 'pan' && e.touches.length === 1) {
-      // One finger: drag pan
+      touchStateRef.current.prevDistance = distance;
+    } else if (e.touches.length === 1 && zoom > 1) {
+      // Drag pan (only when zoomed)
       const touch = e.touches[0];
-      const lastX = touchStateRef.current.lastX;
-      const lastY = touchStateRef.current.lastY;
+      const deltaX = touch.clientX - touchStateRef.current.prevX;
+      const deltaY = touch.clientY - touchStateRef.current.prevY;
       
-      if (lastX !== null && lastY !== null) {
-        const deltaX = touch.clientX - lastX;
-        const deltaY = touch.clientY - lastY;
-        setPanX(prev => prev + deltaX);
-        setPanY(prev => prev + deltaY);
-      }
+      setPanX(prev => prev + deltaX);
+      setPanY(prev => prev + deltaY);
       
-      touchStateRef.current.lastX = touch.clientX;
-      touchStateRef.current.lastY = touch.clientY;
+      touchStateRef.current.prevX = touch.clientX;
+      touchStateRef.current.prevY = touch.clientY;
     }
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    touchStateRef.current.initialDistance = null;
-    touchStateRef.current.lastX = null;
-    touchStateRef.current.lastY = null;
-    touchStateRef.current.activeGesture = null;
+  const handleTouchEnd = () => {
+    touchStateRef.current.prevDistance = 0;
+    touchStateRef.current.prevX = 0;
+    touchStateRef.current.prevY = 0;
   };
 
   const fetchPhotos = async () => {
