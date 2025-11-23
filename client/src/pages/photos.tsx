@@ -46,7 +46,6 @@ export default function PhotosPage() {
   const [panY, setPanY] = useState(0);
   const [formData, setFormData] = useState({
     description: "",
-    url: "",
     fileData: "",
     file: null as File | null,
   });
@@ -284,7 +283,7 @@ export default function PhotosPage() {
       
       const photoData = {
         description: formData.description,
-        url: formData.url,
+        url: "",
         fileData: fileData,
       };
       
@@ -294,7 +293,7 @@ export default function PhotosPage() {
         body: JSON.stringify(photoData),
       });
       if (response.ok) {
-        setFormData({ description: "", url: "", fileData: "", file: null });
+        setFormData({ description: "", fileData: "", file: null });
         setOpen(false);
         fetchPhotos();
       }
@@ -352,18 +351,6 @@ export default function PhotosPage() {
                   accept="image/*"
                   onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
                 />
-                <p className="text-xs text-gray-500 mt-1">atau</p>
-              </div>
-              
-              <div>
-                <Label htmlFor="url">URL Foto (opsional)</Label>
-                <Input
-                  id="url"
-                  type="url"
-                  value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  placeholder="https://example.com/photo.jpg"
-                />
               </div>
               
               <div>
@@ -374,7 +361,7 @@ export default function PhotosPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={!formData.file && !formData.url}>
+              <Button type="submit" className="w-full" disabled={!formData.file}>
                 Simpan
               </Button>
             </form>
