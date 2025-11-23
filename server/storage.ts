@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { 
   users, 
   students,
@@ -31,6 +31,7 @@ export interface IStorage {
   deleteStudent(id: number): Promise<boolean>;
   
   getAllPhotos(): Promise<Photo[]>;
+  getAllPhotosMetadata(): Promise<Array<{id: number; title: string | null; description: string | null; uploadedAt: Date | null}>>;
   getPhoto(id: number): Promise<Photo | undefined>;
   createPhoto(photo: InsertPhoto): Promise<Photo>;
   deletePhoto(id: number): Promise<boolean>;
@@ -83,6 +84,17 @@ export class DatabaseStorage implements IStorage {
 
   async getAllPhotos(): Promise<Photo[]> {
     return await db.select().from(photos);
+  }
+
+  async getAllPhotosMetadata(): Promise<Array<{id: number; title: string | null; description: string | null; uploadedAt: Date | null}>> {
+    // Select only metadata columns, excluding fileData
+    const result = await db.select({
+      id: photos.id,
+      title: photos.title,
+      description: photos.description,
+      uploadedAt: photos.uploadedAt,
+    }).from(photos);
+    return result;
   }
 
   async getPhoto(id: number): Promise<Photo | undefined> {

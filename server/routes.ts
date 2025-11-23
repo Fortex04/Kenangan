@@ -194,11 +194,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/photos", async (req, res) => {
     try {
-      const photos = await storage.getAllPhotos();
+      const photos = await storage.getAllPhotosMetadata();
       res.json(photos);
     } catch (error) {
       console.error("Error fetching photos:", error);
       res.status(500).json({ error: "Failed to fetch photos" });
+    }
+  });
+
+  app.get("/api/photos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const photo = await storage.getPhoto(id);
+      if (!photo) {
+        res.status(404).json({ error: "Photo not found" });
+        return;
+      }
+      res.json(photo);
+    } catch (error) {
+      console.error("Error fetching photo:", error);
+      res.status(500).json({ error: "Failed to fetch photo" });
     }
   });
 

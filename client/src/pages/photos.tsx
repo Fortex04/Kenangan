@@ -69,8 +69,20 @@ export default function PhotosPage() {
     totalDragDist: 0,
   });
 
-  const openPhotoViewer = (photo: Photo) => {
-    setSelectedPhoto(photo);
+  const openPhotoViewer = async (photo: Photo) => {
+    try {
+      // Fetch full photo data with fileData
+      const response = await fetch(`/api/photos/${photo.id}`);
+      if (response.ok) {
+        const fullPhoto = await response.json();
+        setSelectedPhoto(fullPhoto);
+      } else {
+        setSelectedPhoto(photo);
+      }
+    } catch (error) {
+      console.error('Failed to load full photo:', error);
+      setSelectedPhoto(photo);
+    }
     setZoom(1);
     setPanX(0);
     setPanY(0);
@@ -195,16 +207,21 @@ export default function PhotosPage() {
 
   const fetchPhotos = async () => {
     try {
+      console.log("Fetching photos...");
       const response = await fetch("/api/photos");
+      console.log("Fetch response status:", response.status);
+      
       if (!response.ok) {
-        throw new Error("Failed to fetch photos");
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+      
       const data = await response.json();
+      console.log("Photos loaded, count:", data.length);
       setPhotos(data);
       
-      // Pre-resolve Google Photos URLs
+      // Pre-resolve Google Photos URLs (skip if no URL or fileData exists)
       for (const photo of data) {
-        if (photo.url.includes('photos.app.goo.gl')) {
+        if (photo.url && photo.url.includes('photos.app.goo.gl')) {
           try {
             const resolved = await getResolvedImageUrl(photo.url);
             setResolvedUrls(prev => ({
@@ -217,7 +234,10 @@ export default function PhotosPage() {
         }
       }
     } catch (error) {
-      console.error("Failed to fetch photos:", error);
+      console.error("Failed to fetch photos - Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        error: error
+      });
       setPhotos([]);
     } finally {
       setLoading(false);
@@ -247,6 +267,9 @@ export default function PhotosPage() {
     if (!selectedPhoto) return;
 
     const loadHighQualityUrl = async () => {
+      // Only resolve if URL exists (not for fileData photos)
+      if (!selectedPhoto.url) return;
+      
       try {
         const highQualityUrl = await getResolvedImageUrl(selectedPhoto.url, true);
         setResolvedUrls(prev => ({
