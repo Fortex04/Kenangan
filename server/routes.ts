@@ -121,27 +121,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // If we found an image URL, use MAXIMUM quality parameters
+      // If we found an image URL, return as-is or with minimal safe parameters
       if (imageUrl) {
         if (imageUrl.includes('lh') && imageUrl.includes('googleusercontent.com')) {
-          // Remove any existing size parameters - but preserve base URL
-          let cleanUrl = imageUrl;
-          cleanUrl = cleanUrl.replace(/[?&](w|h|d|s)=\d+/g, '');
-          cleanUrl = cleanUrl.replace(/=w\d+/g, '');
-          
-          // Add MAXIMUM quality parameters
-          // Multiple approaches to get highest quality:
-          // 1. =d - download/original quality
-          // 2. =w0 - unlimited width (if supported)
-          // 3. =s0 - original/no resize
-          const separator = cleanUrl.includes('?') ? '&' : '?';
-          // Try download parameter combined with unlimited width
-          const finalUrl = cleanUrl + separator + 'w=0&d';
-          
-          console.log('Resolved Google Photos URL for:', url.substring(0, 80) + '...');
-          console.log('Base extracted URL:', imageUrl.substring(0, 100) + '...');
-          console.log('Final quality URL:', finalUrl.substring(0, 100) + '...');
-          return finalUrl;
+          // Just return the URL as-is - Google Photos serves best quality it can
+          // Don't add parameters that might break the URL
+          console.log('Resolved Google Photos image URL successfully');
+          return imageUrl;
         }
         return imageUrl;
       }
