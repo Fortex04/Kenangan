@@ -48,56 +48,61 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Informasi Aplikasi */}
+        {/* Informasi */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Info className="h-5 w-5" />
-              Informasi Aplikasi
+              Informasi
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Nama Aplikasi
-                </h3>
-                <p className="text-base font-medium">Kenangan Kelas</p>
-              </div>
+          <CardContent className="space-y-4 text-sm leading-relaxed">
+            <p>
+              Aplikasi ini dibuat sebagai tempat menyimpan jejak waktu yang perlahan pergi.
+              Foto, video, nama siswa, dan nomor kontak dikumpulkan bukan sekadar sebagai data,
+              tapi sebagai potongan cerita yang suatu hari mungkin sulit kita temukan lagi.
+            </p>
 
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Versi
-                </h3>
-                <p className="text-base font-medium">1.0.0</p>
-              </div>
+            <p>
+              Di sini, setiap momen direkam agar tetap hidup—
+              tawa yang dulu memenuhi kelas, wajah-wajah yang berubah, dan langkah-langkah kecil
+              yang membawa kita ke tempat yang berbeda.
+            </p>
 
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Deskripsi
-                </h3>
-                <p className="text-base">
-                  Aplikasi untuk menyimpan dan mengelola kenangan kelas dengan fitur album foto, video, dan daftar siswa.
-                </p>
-              </div>
+            <p>
+              Melalui aplikasi ini, kamu dapat menelusuri kembali:
+            </p>
 
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Fitur Utama
-                </h3>
-                <ul className="text-base space-y-1 list-disc list-inside">
-                  <li>Album Foto kelas</li>
-                  <li>Album Video YouTube/Vimeo</li>
-                  <li>Daftar Siswa dengan kontak</li>
-                  <li>Pengaturan Tema (Gelap/Terang)</li>
-                </ul>
-              </div>
+            <ul className="space-y-2 list-disc list-inside">
+              <li>Foto dan video kegiatan yang pernah membuat kita merasa dekat</li>
+              <li>Nama teman yang dulu setiap hari kita sapa</li>
+              <li>Kontak yang mungkin suatu saat jadi penghubung ketika jarak mulai terasa</li>
+              <li>Album kenangan yang tertata seperti halaman masa lalu yang tak ingin hilang</li>
+            </ul>
 
-              <div className="pt-2 border-t mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Dibuat dengan ❤️ untuk mengabadikan kenangan berharga bersama kelas Anda.
-                </p>
-              </div>
+            <p>
+              Aplikasi ini hadir sebagai pengingat lembut,
+              bahwa kenangan bukan untuk dilupakan,
+              melainkan dijaga—karena waktu tak selalu memberi kesempatan kedua
+              untuk melihat semuanya kembali secara utuh.
+            </p>
+
+            <div className="border-t pt-4 mt-4">
+              <p>
+                Saya Akhmad Amri Gunawan, mengucapkan terima kasih.
+              </p>
+
+              <p className="mt-3">
+                Terima kasih karena telah membuka, mengingat, dan menjaga kembali cerita yang pernah kita jalani bersama.
+              </p>
+
+              <p className="mt-3">
+                Semoga setiap kenangan yang tersimpan di aplikasi ini menjadi pengingat,
+              </p>
+
+              <p>
+                bahwa masa sekolah mungkin telah lewat... tapi jejaknya tetap ada, dan tidak benar-benar hilang.
+              </p>
             </div>
           </CardContent>
         </Card>
