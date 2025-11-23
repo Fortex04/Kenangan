@@ -9,29 +9,31 @@ import { Trash2, Plus, X } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
-// Helper function to get resolved image URL
+// Helper function to get resolved image URL with proxy
 const getResolvedImageUrl = async (url: string): Promise<string> => {
   try {
+    let resolvedUrl = url;
+    
     if (url.includes('photos.app.goo.gl')) {
       const response = await fetch(`/api/photos/resolve-url?url=${encodeURIComponent(url)}`);
       if (response.ok) {
         const data = await response.json();
-        return data.url;
+        resolvedUrl = data.url;
       }
     }
     
     // If it's already a googleusercontent URL, optimize it
-    if (url.includes('lh3.googleusercontent.com') || url.includes('googleusercontent.com')) {
-      if (!url.includes('=w')) {
-        return url + (url.includes('?') ? '&' : '?') + 'w=1000';
+    if (resolvedUrl.includes('lh3.googleusercontent.com') || resolvedUrl.includes('googleusercontent.com')) {
+      if (!resolvedUrl.includes('=w')) {
+        resolvedUrl = resolvedUrl + (resolvedUrl.includes('?') ? '&' : '?') + 'w=1000';
       }
-      return url;
     }
     
-    return url;
+    // Return proxy URL to bypass CORS
+    return `/api/photos/proxy?url=${encodeURIComponent(resolvedUrl)}`;
   } catch (error) {
     console.error('Error resolving image URL:', error);
-    return url;
+    return `/api/photos/proxy?url=${encodeURIComponent(url)}`;
   }
 };
 
@@ -194,10 +196,9 @@ export default function PhotosPage() {
         {photos.map((photo) => (
           <div key={photo.id} className="relative group rounded-md overflow-hidden bg-gray-200">
             <img
-              src={resolvedUrls[photo.id] || photo.url}
+              src={resolvedUrls[photo.id] || `/api/photos/proxy?url=${encodeURIComponent(photo.url)}`}
               alt={photo.title || ""}
               className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200 cursor-pointer"
-              crossOrigin="anonymous"
               onClick={() => openPhotoViewer(photo)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
@@ -244,10 +245,13 @@ export default function PhotosPage() {
 
             {/* Main Image */}
             <img
-              src={resolvedUrls[selectedPhoto.id] || selectedPhoto.url}
+              src={resolvedUrls[selectedPhoto.id] || `/api/photos/proxy?url=${encodeURIComponent(selectedPhoto.url)}`}
               alt={selectedPhoto.title || ""}
               className="max-w-full max-h-full object-contain"
-              crossOrigin="anonymous"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo image%3C/text%3E%3C/svg%3E';
+              }}
             />
 
             {/* Description at Bottom */}

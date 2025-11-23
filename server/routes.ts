@@ -132,6 +132,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Image proxy endpoint to bypass CORS issues
+  app.get("/api/photos/proxy", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) {
+        res.status(400).json({ error: "URL parameter required" });
+        return;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Referer': 'https://photos.google.com/'
+        }
+      });
+
+      if (!response.ok) {
+        res.status(response.status).json({ error: "Failed to fetch image" });
+        return;
+      }
+
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const buffer = await response.arrayBuffer();
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.send(Buffer.from(buffer));
+    } catch (error) {
+      console.error("Error proxying image:", error);
+      res.status(500).json({ error: "Failed to proxy image" });
+    }
+  });
+
   app.get("/api/photos", async (req, res) => {
     try {
       const photos = await storage.getAllPhotos();
