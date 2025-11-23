@@ -246,26 +246,27 @@ export default function PhotosPage() {
         ))}
       </div>
 
-      {/* Fullscreen Photo Viewer Gallery */}
+      {/* Fullscreen Photo Gallery with Filmstrip */}
       {selectedPhoto && (
         <div 
-          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black flex"
           onClick={() => closePhotoViewer()}
         >
+          {/* Main Photo Area - Left Side (70%) */}
           <div 
-            className="relative w-full h-full flex items-center justify-center"
+            className="relative flex-1 flex items-center justify-center overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
               onClick={() => closePhotoViewer()}
-              className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors z-10"
+              className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors z-20"
             >
               <X className="h-10 w-10" />
             </button>
 
             {/* Photo Counter */}
-            <div className="absolute top-6 left-6 text-white text-lg font-medium z-10">
+            <div className="absolute top-6 left-6 text-white text-lg font-medium z-20">
               {currentPhotoIndex + 1} / {photos.length}
             </div>
 
@@ -275,14 +276,14 @@ export default function PhotosPage() {
                 e.stopPropagation();
                 handlePrevPhoto();
               }}
-              className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2"
+              className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-20 p-2"
               disabled={photos.length <= 1}
             >
               <ChevronLeft className="h-12 w-12" />
             </button>
 
-            {/* Image */}
-            <div className="relative w-full h-full flex items-center justify-center px-20">
+            {/* Main Image */}
+            <div className="relative w-full h-full flex items-center justify-center px-10">
               <img
                 src={resolvedUrls[getCurrentPhoto()?.id || selectedPhoto.id] || getCurrentPhoto()?.url || selectedPhoto.url}
                 alt={getCurrentPhoto()?.title || selectedPhoto.title || ""}
@@ -297,18 +298,40 @@ export default function PhotosPage() {
                 e.stopPropagation();
                 handleNextPhoto();
               }}
-              className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2"
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-20 p-2"
               disabled={photos.length <= 1}
             >
               <ChevronRight className="h-12 w-12" />
             </button>
 
-            {/* Description */}
+            {/* Description at Bottom */}
             {getCurrentPhoto()?.description && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-6">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-6 z-20">
                 <p className="text-white text-base">{getCurrentPhoto()?.description}</p>
               </div>
             )}
+          </div>
+
+          {/* Thumbnail Filmstrip - Right Side (30%) */}
+          <div className="w-32 bg-gray-900/50 overflow-y-auto flex flex-col gap-2 p-2">
+            {photos.map((photo, index) => (
+              <button
+                key={photo.id}
+                onClick={() => setCurrentPhotoIndex(index)}
+                className={`flex-shrink-0 h-24 rounded-md overflow-hidden transition-all ${
+                  index === currentPhotoIndex 
+                    ? 'ring-2 ring-blue-500 opacity-100' 
+                    : 'opacity-60 hover:opacity-100'
+                }`}
+              >
+                <img
+                  src={resolvedUrls[photo.id] || photo.url}
+                  alt={photo.title || ""}
+                  className="w-full h-full object-cover"
+                  crossOrigin="anonymous"
+                />
+              </button>
+            ))}
           </div>
         </div>
       )}
