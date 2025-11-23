@@ -1,27 +1,57 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import "@fontsource/inter";
-import SnakeGame from "./components/SnakeGame";
-import { useAudio } from "./lib/stores/useAudio";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PhotosPage from "./pages/photos";
+import VideosPage from "./pages/videos";
+import StudentsPage from "./pages/students";
+import { GraduationCap, Image, Video } from "lucide-react";
 
 function App() {
-  const { setBackgroundMusic, setHitSound, setSuccessSound } = useAudio();
+  const [activeTab, setActiveTab] = useState("photos");
 
-  useEffect(() => {
-    const bgMusic = new Audio("/sounds/background.mp3");
-    bgMusic.loop = true;
-    bgMusic.volume = 0.3;
-    setBackgroundMusic(bgMusic);
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <GraduationCap className="h-8 w-8 text-indigo-600" />
+            <h1 className="text-2xl font-bold text-gray-800">Kenangan Kelas</h1>
+          </div>
+        </div>
+      </header>
 
-    const hit = new Audio("/sounds/hit.mp3");
-    hit.volume = 0.5;
-    setHitSound(hit);
+      <main className="container mx-auto py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-6">
+            <TabsTrigger value="photos" className="flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Foto
+            </TabsTrigger>
+            <TabsTrigger value="videos" className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              Video
+            </TabsTrigger>
+            <TabsTrigger value="students" className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" />
+              Siswa
+            </TabsTrigger>
+          </TabsList>
 
-    const success = new Audio("/sounds/success.mp3");
-    success.volume = 0.4;
-    setSuccessSound(success);
-  }, [setBackgroundMusic, setHitSound, setSuccessSound]);
+          <TabsContent value="photos">
+            <PhotosPage />
+          </TabsContent>
 
-  return <SnakeGame />;
+          <TabsContent value="videos">
+            <VideosPage />
+          </TabsContent>
+
+          <TabsContent value="students">
+            <StudentsPage />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
 }
 
 export default App;
