@@ -269,33 +269,50 @@ export default function PhotosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let fileData = formData.fileData;
-      
-      // If file selected, convert to base64
-      if (formData.file) {
-        fileData = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(formData.file);
-        });
+      if (!formData.file) {
+        console.error("No file selected");
+        return;
       }
+
+      console.log("Converting file to base64...", formData.file.name);
+      
+      const fileData = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          console.log("File converted to base64, size:", result.length);
+          resolve(result);
+        };
+        reader.onerror = () => {
+          console.error("FileReader error:", reader.error);
+          reject(reader.error);
+        };
+        reader.readAsDataURL(formData.file);
+      });
       
       const photoData = {
         description: formData.description,
-        url: "",
         fileData: fileData,
       };
+      
+      console.log("Sending photo data, payload size:", JSON.stringify(photoData).length);
       
       const response = await fetch("/api/photos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(photoData),
       });
+      
+      console.log("Response status:", response.status);
+      
       if (response.ok) {
+        console.log("Photo saved successfully");
         setFormData({ description: "", fileData: "", file: null });
         setOpen(false);
         fetchPhotos();
+      } else {
+        const errorData = await response.json();
+        console.error("Server error:", response.status, errorData);
       }
     } catch (error) {
       console.error("Failed to add photo:", error);
