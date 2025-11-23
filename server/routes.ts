@@ -53,7 +53,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to resolve Google Photos share links
+  async function resolvePhotoUrl(url: string): Promise<string> {
+    try {
+      if (!url.includes('photos.app.goo.gl')) {
+        return url;
+      }
+      
+      // For Google Photos short links, try to get the final URL
+      const response = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      });
+      
+      const finalUrl = response.url;
+      
+      // If it's a googleusercontent URL, optimize it
+      if (finalUrl.includes('lh3.googleusercontent.com') || finalUrl.includes('googleusercontent.com')) {
+        if (!finalUrl.includes('=w')) {
+          return finalUrl + (finalUrl.includes('?') ? '&' : '?') + 'w=1000';
+        }
+      }
+      
+      return finalUrl;
+    } catch (error) {
+      console.error('Error resolving photo URL:', error);
+      return url;
+    }
+  }
+
   // Photos routes
+  app.get("/api/photos/resolve-url", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) {
+        res.status(400).json({ error: "URL parameter required" });
+        return;
+      }
+      
+      const resolvedUrl = await resolvePhotoUrl(url);
+      res.json({ url: resolvedUrl });
+    } catch (error) {
+      console.error("Error resolving URL:", error);
+      res.status(500).json({ error: "Failed to resolve URL" });
+    }
+  });
+
   app.get("/api/photos", async (req, res) => {
     try {
       const photos = await storage.getAllPhotos();

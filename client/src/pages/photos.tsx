@@ -9,28 +9,28 @@ import { Trash2, Plus, X } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
-// Helper function to convert Google Photos share links to direct image URLs
-const getImageUrl = (url: string): string => {
+// Helper function to get resolved image URL
+const getResolvedImageUrl = async (url: string): Promise<string> => {
   try {
-    // If it's a Google Photos share link (photos.app.goo.gl)
     if (url.includes('photos.app.goo.gl')) {
-      // Convert to a direct image URL format that works better
-      // photos.app.goo.gl redirects to a googleusercontent URL
-      // We'll try to access it with an image parameter
-      return url + '=w600';
+      const response = await fetch(`/api/photos/resolve-url?url=${encodeURIComponent(url)}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.url;
+      }
     }
     
     // If it's already a googleusercontent URL, optimize it
     if (url.includes('lh3.googleusercontent.com') || url.includes('googleusercontent.com')) {
-      // Add width parameter if not already present
       if (!url.includes('=w')) {
-        return url + (url.includes('?') ? '&' : '?') + 'w=600';
+        return url + (url.includes('?') ? '&' : '?') + 'w=1000';
       }
       return url;
     }
     
     return url;
-  } catch {
+  } catch (error) {
+    console.error('Error resolving image URL:', error);
     return url;
   }
 };
@@ -41,6 +41,7 @@ export default function PhotosPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [resolvedUrls, setResolvedUrls] = useState<Record<number, string>>({});
   const [formData, setFormData] = useState({
     description: "",
     url: "",
@@ -54,6 +55,21 @@ export default function PhotosPage() {
       }
       const data = await response.json();
       setPhotos(data);
+      
+      // Pre-resolve Google Photos URLs
+      for (const photo of data) {
+        if (photo.url.includes('photos.app.goo.gl')) {
+          try {
+            const resolved = await getResolvedImageUrl(photo.url);
+            setResolvedUrls(prev => ({
+              ...prev,
+              [photo.id]: resolved
+            }));
+          } catch (error) {
+            console.error(`Failed to resolve URL for photo ${photo.id}:`, error);
+          }
+        }
+      }
     } catch (error) {
       console.error("Failed to fetch photos:", error);
       setPhotos([]);
@@ -156,23 +172,14 @@ export default function PhotosPage() {
         {photos.map((photo) => (
           <div key={photo.id} className="relative group rounded-md overflow-hidden bg-gray-200">
             <img
-              src={getImageUrl(photo.url)}
+              src={resolvedUrls[photo.id] || photo.url}
               alt={photo.title || ""}
               className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200 cursor-pointer"
               crossOrigin="anonymous"
               onClick={() => setSelectedPhoto(photo)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                // Try alternative format for Google Photos if first attempt fails
-                if (photo.url.includes('photos.app.goo.gl') && !target.src.includes('=w')) {
-                  target.src = photo.url + '=w600';
-                } else if (photo.url.includes('photos.app.goo.gl') && target.src.includes('=w600')) {
-                  // If that fails too, try without the parameter
-                  target.src = photo.url;
-                } else {
-                  // Fallback to placeholder
-                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
-                }
+                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
               }}
             />
             <Button
@@ -212,7 +219,7 @@ export default function PhotosPage() {
               <X className="h-8 w-8" />
             </button>
             <img
-              src={getImageUrl(selectedPhoto.url)}
+              src={resolvedUrls[selectedPhoto.id] || selectedPhoto.url}
               alt={selectedPhoto.title || ""}
               className="w-full h-full object-contain rounded-lg"
               crossOrigin="anonymous"
