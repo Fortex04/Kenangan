@@ -377,8 +377,8 @@ export default function PhotosPage() {
             <img
               src={
                 photo.fileData || 
-                resolvedUrls[photo.id] || 
-                (photo.url ? `/api/photos/proxy?url=${encodeURIComponent(photo.url)}` : "")
+                resolvedUrls[photo.id] ||
+                'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3C/svg%3E'
               }
               alt={photo.title || ""}
               className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200 cursor-pointer"
@@ -441,8 +441,8 @@ export default function PhotosPage() {
             <img
               src={
                 selectedPhoto.fileData || 
-                resolvedUrls[selectedPhoto.id] || 
-                (selectedPhoto.url ? `/api/photos/proxy?url=${encodeURIComponent(selectedPhoto.url)}` : "")
+                resolvedUrls[selectedPhoto.id] ||
+                'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3C/svg%3E'
               }
               alt={selectedPhoto.title || ""}
               className="max-w-full max-h-full object-contain transition-transform duration-75 ease-out"
