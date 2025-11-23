@@ -66,7 +66,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         method: 'GET',
         redirect: 'follow',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
         }
       });
       
@@ -76,19 +77,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to extract image URL from various locations in the page
       let imageUrl = '';
       
-      // Try meta og:image tag first (most reliable)
-      imageUrl = $('meta[property="og:image"]').attr('content') || '';
+      // Try meta og:image tag first (most reliable for highest quality)
+      let ogImage = $('meta[property="og:image"]').attr('content');
+      if (ogImage) {
+        imageUrl = ogImage;
+      }
       
-      // If not found, try to find it in the page data or images
+      // If not found, try data-src in images
       if (!imageUrl) {
-        // Look for data-src in images within the page
         const images = $('img[data-src]');
         if (images.length > 0) {
-          imageUrl = images.first().attr('data-src') || '';
+          const dataSrc = images.first().attr('data-src');
+          if (dataSrc) imageUrl = dataSrc;
         }
       }
       
-      // If still not found, try regular src attributes
+      // Try to find in srcset
+      if (!imageUrl) {
+        const imgs = $('img[srcset]');
+        if (imgs.length > 0) {
+          const srcset = imgs.first().attr('srcset');
+          if (srcset) {
+            // Extract highest resolution URL from srcset
+            const urls = srcset.split(',').map(s => s.trim());
+            imageUrl = urls[urls.length - 1]?.split(' ')[0] || '';
+          }
+        }
+      }
+      
+      // Try regular src attributes with googleusercontent
       if (!imageUrl) {
         const imgs = $('img[src*="googleusercontent"]');
         if (imgs.length > 0) {
@@ -96,25 +113,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // If we found an image URL, use full quality parameters
+      // Search HTML for any googleusercontent URLs
+      if (!imageUrl) {
+        const match = html.match(/https?:\/\/lh\d+\.googleusercontent\.com[^"'<>]*/);
+        if (match) {
+          imageUrl = match[0];
+        }
+      }
+      
+      // If we found an image URL, use MAXIMUM quality parameters
       if (imageUrl) {
-        if (imageUrl.includes('lh3.googleusercontent.com') || imageUrl.includes('googleusercontent.com')) {
-          // Remove any existing size parameters and add full quality parameters
+        if (imageUrl.includes('lh') && imageUrl.includes('googleusercontent.com')) {
+          // Remove any existing size parameters - but preserve base URL
           let cleanUrl = imageUrl;
-          
-          // Remove existing width/height/quality parameters
           cleanUrl = cleanUrl.replace(/[?&](w|h|d|s)=\d+/g, '');
+          cleanUrl = cleanUrl.replace(/=w\d+/g, '');
           
-          // Add parameters for maximum quality:
-          // Use w=4096 for high resolution and s0 for original size
+          // Add MAXIMUM quality parameters
+          // Multiple approaches to get highest quality:
+          // 1. =d - download/original quality
+          // 2. =w0 - unlimited width (if supported)
+          // 3. =s0 - original/no resize
           const separator = cleanUrl.includes('?') ? '&' : '?';
-          return cleanUrl + separator + 'w=4096&s0';
+          // Try download parameter combined with unlimited width
+          const finalUrl = cleanUrl + separator + 'w=0&d';
+          
+          console.log('Resolved Google Photos URL for:', url.substring(0, 80) + '...');
+          console.log('Base extracted URL:', imageUrl.substring(0, 100) + '...');
+          console.log('Final quality URL:', finalUrl.substring(0, 100) + '...');
+          return finalUrl;
         }
         return imageUrl;
       }
       
-      // Fallback: return the response URL if we couldn't extract an image
-      console.warn('Could not extract image URL from Google Photos page, using fallback');
+      // Fallback
+      console.warn('Could not extract image URL from Google Photos page');
       return response.url;
     } catch (error) {
       console.error('Error resolving photo URL:', error);
