@@ -9,6 +9,32 @@ import { Trash2, Plus } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
+// Helper function to convert Google Photos share links to direct image URLs
+const getImageUrl = (url: string): string => {
+  try {
+    // If it's a Google Photos share link (photos.app.goo.gl)
+    if (url.includes('photos.app.goo.gl')) {
+      // Convert to a direct image URL format that works better
+      // photos.app.goo.gl redirects to a googleusercontent URL
+      // We'll try to access it with an image parameter
+      return url + '=w600';
+    }
+    
+    // If it's already a googleusercontent URL, optimize it
+    if (url.includes('lh3.googleusercontent.com') || url.includes('googleusercontent.com')) {
+      // Add width parameter if not already present
+      if (!url.includes('=w')) {
+        return url + (url.includes('?') ? '&' : '?') + 'w=600';
+      }
+      return url;
+    }
+    
+    return url;
+  } catch {
+    return url;
+  }
+};
+
 export default function PhotosPage() {
   const { theme } = useTheme();
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -129,12 +155,22 @@ export default function PhotosPage() {
         {photos.map((photo) => (
           <div key={photo.id} className="relative group rounded-md overflow-hidden bg-gray-200">
             <img
-              src={photo.url}
-              alt={photo.title}
+              src={getImageUrl(photo.url)}
+              alt={photo.title || ""}
               className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200"
+              crossOrigin="anonymous"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
+                // Try alternative format for Google Photos if first attempt fails
+                if (photo.url.includes('photos.app.goo.gl') && !target.src.includes('=w')) {
+                  target.src = photo.url + '=w600';
+                } else if (photo.url.includes('photos.app.goo.gl') && target.src.includes('=w600')) {
+                  // If that fails too, try without the parameter
+                  target.src = photo.url;
+                } else {
+                  // Fallback to placeholder
+                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
+                }
               }}
             />
             <Button
