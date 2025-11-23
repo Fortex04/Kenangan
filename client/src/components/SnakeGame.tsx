@@ -8,27 +8,64 @@ interface Position {
 }
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+type Difficulty = 'slow' | 'medium' | 'fast';
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
-const INITIAL_SPEED = 150;
+const SPEED_MAP = {
+  slow: 200,
+  medium: 150,
+  fast: 100
+};
 
 export default function SnakeGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [gameState, setGameState] = useState<'ready' | 'playing' | 'gameover'>('ready');
+  const [gameState, setGameState] = useState<'ready' | 'playing' | 'paused' | 'gameover'>('ready');
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(() => {
     const saved = localStorage.getItem('snakeHighScore');
     return saved ? parseInt(saved) : 0;
   });
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [level, setLevel] = useState(1);
 
   const snakeRef = useRef<Position[]>([{ x: 10, y: 10 }]);
   const directionRef = useRef<Direction>('RIGHT');
   const nextDirectionRef = useRef<Direction>('RIGHT');
   const foodRef = useRef<Position>({ x: 15, y: 10 });
+  const obstaclesRef = useRef<Position[]>([]);
   const gameLoopRef = useRef<number | null>(null);
   
   const { playHit, playSuccess, backgroundMusic } = useAudio();
+
+  const generateObstacles = useCallback((count: number): Position[] => {
+    const obstacles: Position[] = [];
+    let attempts = 0;
+    const maxAttempts = 100;
+    
+    while (obstacles.length < count && attempts < maxAttempts) {
+      const newObstacle = {
+        x: Math.floor(Math.random() * GRID_SIZE),
+        y: Math.floor(Math.random() * GRID_SIZE)
+      };
+      
+      const isOnSnake = snakeRef.current.some(
+        segment => segment.x === newObstacle.x && segment.y === newObstacle.y
+      );
+      const isOnFood = foodRef.current.x === newObstacle.x && foodRef.current.y === newObstacle.y;
+      const isDuplicate = obstacles.some(
+        obs => obs.x === newObstacle.x && obs.y === newObstacle.y
+      );
+      
+      if (!isOnSnake && !isOnFood && !isDuplicate) {
+        obstacles.push(newObstacle);
+      }
+      
+      attempts++;
+    }
+    
+    return obstacles;
+  }, []);
 
   const generateFood = useCallback((): Position => {
     let newFood: Position;
@@ -45,8 +82,11 @@ export default function SnakeGame() {
       const isOnSnake = snakeRef.current.some(
         segment => segment.x === newFood.x && segment.y === newFood.y
       );
+      const isOnObstacle = obstaclesRef.current.some(
+        obs => obs.x === newFood.x && obs.y === newFood.y
+      );
       
-      if (!isOnSnake) {
+      if (!isOnSnake && !isOnObstacle) {
         return newFood;
       }
     } while (attempts < maxAttempts);
@@ -63,6 +103,13 @@ export default function SnakeGame() {
       if (head.x === snakeRef.current[i].x && head.y === snakeRef.current[i].y) {
         return true;
       }
+    }
+    
+    const hitObstacle = obstaclesRef.current.some(
+      obs => obs.x === head.x && obs.y === head.y
+    );
+    if (hitObstacle) {
+      return true;
     }
     
     return false;
@@ -160,6 +207,16 @@ export default function SnakeGame() {
       CELL_SIZE - 2,
       CELL_SIZE - 2
     );
+
+    ctx.fillStyle = '#6b7280';
+    obstaclesRef.current.forEach(obstacle => {
+      ctx.fillRect(
+        obstacle.x * CELL_SIZE + 1,
+        obstacle.y * CELL_SIZE + 1,
+        CELL_SIZE - 2,
+        CELL_SIZE - 2
+      );
+    });
   }, []);
 
   const gameLoop = useCallback(() => {
@@ -169,7 +226,8 @@ export default function SnakeGame() {
 
   useEffect(() => {
     if (gameState === 'playing') {
-      gameLoopRef.current = window.setInterval(gameLoop, INITIAL_SPEED);
+      const speed = SPEED_MAP[difficulty];
+      gameLoopRef.current = window.setInterval(gameLoop, speed);
       return () => {
         if (gameLoopRef.current) {
           clearInterval(gameLoopRef.current);
@@ -180,7 +238,7 @@ export default function SnakeGame() {
         clearInterval(gameLoopRef.current);
       }
     }
-  }, [gameState, gameLoop]);
+  }, [gameState, gameLoop, difficulty]);
 
   useEffect(() => {
     return () => {
@@ -196,9 +254,21 @@ export default function SnakeGame() {
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      const key = e.key;
+
+      if (key === 'Escape' || key === 'p' || key === 'P') {
+        if (gameState === 'playing') {
+          setGameState('paused');
+          e.preventDefault();
+        } else if (gameState === 'paused') {
+          setGameState('playing');
+          e.preventDefault();
+        }
+        return;
+      }
+
       if (gameState !== 'playing') return;
 
-      const key = e.key;
       const currentDirection = directionRef.current;
 
       if ((key === 'ArrowUp' || key === 'w' || key === 'W') && currentDirection !== 'DOWN') {
@@ -225,6 +295,10 @@ export default function SnakeGame() {
     directionRef.current = 'RIGHT';
     nextDirectionRef.current = 'RIGHT';
     foodRef.current = generateFood();
+    
+    const obstacleCount = Math.min(level * 2, 10);
+    obstaclesRef.current = generateObstacles(obstacleCount);
+    
     setScore(0);
     setGameState('playing');
     
@@ -237,7 +311,16 @@ export default function SnakeGame() {
 
   const restartGame = () => {
     setGameState('ready');
+    setLevel(1);
     setTimeout(() => startGame(), 100);
+  };
+
+  const togglePause = () => {
+    if (gameState === 'playing') {
+      setGameState('paused');
+    } else if (gameState === 'paused') {
+      setGameState('playing');
+    }
   };
 
   return (
@@ -269,15 +352,77 @@ export default function SnakeGame() {
         {gameState === 'ready' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 rounded-lg backdrop-blur-sm">
             <h2 className="text-4xl font-bold text-white mb-4">Ready to Play?</h2>
-            <p className="text-gray-300 mb-6 text-center px-4">
+            <p className="text-gray-300 mb-4 text-center px-4">
               Use Arrow Keys or WASD to control the snake
             </p>
+            
+            <div className="mb-6">
+              <p className="text-sm text-gray-400 mb-2 text-center">Select Difficulty:</p>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setDifficulty('slow')}
+                  variant={difficulty === 'slow' ? 'default' : 'outline'}
+                  className={difficulty === 'slow' ? 'bg-blue-500 hover:bg-blue-600' : ''}
+                >
+                  Slow
+                </Button>
+                <Button
+                  onClick={() => setDifficulty('medium')}
+                  variant={difficulty === 'medium' ? 'default' : 'outline'}
+                  className={difficulty === 'medium' ? 'bg-yellow-500 hover:bg-yellow-600' : ''}
+                >
+                  Medium
+                </Button>
+                <Button
+                  onClick={() => setDifficulty('fast')}
+                  variant={difficulty === 'fast' ? 'default' : 'outline'}
+                  className={difficulty === 'fast' ? 'bg-red-500 hover:bg-red-600' : ''}
+                >
+                  Fast
+                </Button>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-400 mb-2 text-center">Select Level (Obstacles):</p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map(lvl => (
+                  <Button
+                    key={lvl}
+                    onClick={() => setLevel(lvl)}
+                    variant={level === lvl ? 'default' : 'outline'}
+                    size="sm"
+                    className={level === lvl ? 'bg-purple-500 hover:bg-purple-600' : ''}
+                  >
+                    {lvl}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-1 text-center">
+                Level {level} = {level * 2} obstacles
+              </p>
+            </div>
+            
             <Button
               onClick={startGame}
               size="lg"
               className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-8 py-6"
             >
               Start Game
+            </Button>
+          </div>
+        )}
+
+        {gameState === 'paused' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 rounded-lg backdrop-blur-sm">
+            <h2 className="text-5xl font-bold text-yellow-400 mb-4">PAUSED</h2>
+            <p className="text-gray-300 mb-6">Press ESC or P to resume</p>
+            <Button
+              onClick={togglePause}
+              size="lg"
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xl px-8 py-6"
+            >
+              Resume
             </Button>
           </div>
         )}
@@ -300,9 +445,12 @@ export default function SnakeGame() {
         )}
       </div>
 
-      <div className="mt-6 text-center text-gray-400 max-w-md">
+      <div className="mt-6 text-center text-gray-400 max-w-md space-y-2">
         <p className="text-sm">
-          🎮 Controls: Arrow Keys or WASD • Eat the red food • Avoid walls and yourself!
+          🎮 Controls: Arrow Keys or WASD • ESC/P to Pause
+        </p>
+        <p className="text-sm">
+          🍎 Eat red food • 🧱 Avoid gray obstacles • ⚠️ Don't hit walls or yourself!
         </p>
       </div>
     </div>
