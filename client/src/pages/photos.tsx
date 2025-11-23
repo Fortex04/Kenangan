@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +52,13 @@ export default function PhotosPage() {
     url: "",
   });
 
+  // Touch state tracking using refs (more reliable than DOM element properties)
+  const touchStateRef = useRef({
+    lastDistance: null as number | null,
+    lastPos: null as { x: number; y: number } | null,
+    fingerCount: 0,
+  });
+
   const openPhotoViewer = (photo: Photo) => {
     setSelectedPhoto(photo);
     setZoom(1);
@@ -68,20 +75,16 @@ export default function PhotosPage() {
 
   // Handle touch gestures - pinch zoom and drag pan
   const handleTouchMove = (e: React.TouchEvent) => {
-    const container = e.currentTarget as any;
-    
     // If finger count changed, reset all tracking
-    if (e.touches.length !== (container.lastTouchCount || 0)) {
-      container.lastTouchDistance = null;
-      container.lastTouchPos = null;
-      container.lastTouchCount = e.touches.length;
+    if (e.touches.length !== touchStateRef.current.fingerCount) {
+      touchStateRef.current.lastDistance = null;
+      touchStateRef.current.lastPos = null;
+      touchStateRef.current.fingerCount = e.touches.length;
       return;
     }
     
     if (e.touches.length === 2) {
       // Two fingers: pinch zoom only
-      e.preventDefault();
-      
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       
@@ -90,38 +93,35 @@ export default function PhotosPage() {
         touch2.clientY - touch1.clientY
       );
       
-      const lastDistance = container.lastTouchDistance;
-      if (lastDistance) {
+      const lastDistance = touchStateRef.current.lastDistance;
+      if (lastDistance && lastDistance > 0) {
         const scale = distance / lastDistance;
         setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
       }
-      container.lastTouchDistance = distance;
+      touchStateRef.current.lastDistance = distance;
     } else if (e.touches.length === 1) {
       // One finger: drag pan (only when zoomed in)
       if (zoom > 1) {
-        e.preventDefault();
-        
         const touch = e.touches[0];
-        const lastTouch = container.lastTouchPos;
+        const lastPos = touchStateRef.current.lastPos;
         
-        if (lastTouch) {
-          const deltaX = touch.clientX - lastTouch.x;
-          const deltaY = touch.clientY - lastTouch.y;
+        if (lastPos) {
+          const deltaX = touch.clientX - lastPos.x;
+          const deltaY = touch.clientY - lastPos.y;
           
           setPanX(prev => prev + deltaX);
           setPanY(prev => prev + deltaY);
         }
         
-        container.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+        touchStateRef.current.lastPos = { x: touch.clientX, y: touch.clientY };
       }
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const container = e.currentTarget as any;
-    container.lastTouchDistance = null;
-    container.lastTouchPos = null;
-    container.lastTouchCount = e.touches.length;
+    touchStateRef.current.lastDistance = null;
+    touchStateRef.current.lastPos = null;
+    touchStateRef.current.fingerCount = e.touches.length;
   };
 
   const fetchPhotos = async () => {
