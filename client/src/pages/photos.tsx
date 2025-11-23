@@ -42,6 +42,7 @@ export default function PhotosPage() {
   const [open, setOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showFilmstrip, setShowFilmstrip] = useState(true);
   const [resolvedUrls, setResolvedUrls] = useState<Record<number, string>>({});
   const [formData, setFormData] = useState({
     description: "",
@@ -67,10 +68,16 @@ export default function PhotosPage() {
     const index = photos.findIndex(p => p.id === photo.id);
     setCurrentPhotoIndex(index >= 0 ? index : 0);
     setSelectedPhoto(photo);
+    setShowFilmstrip(true);
   };
 
   const closePhotoViewer = () => {
     setSelectedPhoto(null);
+    setShowFilmstrip(true);
+  };
+
+  const toggleFilmstrip = () => {
+    setShowFilmstrip(!showFilmstrip);
   };
 
   const fetchPhotos = async () => {
@@ -252,10 +259,12 @@ export default function PhotosPage() {
           className="fixed inset-0 z-50 bg-black flex"
           onClick={() => closePhotoViewer()}
         >
-          {/* Main Photo Area - Left Side (70%) */}
+          {/* Main Photo Area */}
           <div 
-            className="relative flex-1 flex items-center justify-center overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className={`relative flex items-center justify-center overflow-hidden transition-all ${
+              showFilmstrip ? 'flex-1' : 'w-full'
+            }`}
+            onClick={toggleFilmstrip}
           >
             {/* Close Button */}
             <button
@@ -313,7 +322,8 @@ export default function PhotosPage() {
           </div>
 
           {/* Thumbnail Filmstrip - Right Side (30%) */}
-          <div className="w-32 bg-gray-900/50 overflow-y-auto flex flex-col gap-2 p-2">
+          {showFilmstrip && (
+          <div className="w-32 bg-gray-900/50 overflow-y-auto flex flex-col gap-2 p-2 transition-all">
             {photos.map((photo, index) => (
               <button
                 key={photo.id}
@@ -333,6 +343,7 @@ export default function PhotosPage() {
               </button>
             ))}
           </div>
+          )}
         </div>
       )}
 
