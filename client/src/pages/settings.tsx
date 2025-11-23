@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useTheme } from "@/lib/theme";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Info } from "lucide-react";
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
@@ -11,7 +11,8 @@ export default function SettingsPage() {
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Pengaturan Aplikasi</h1>
 
-      <div className="max-w-md">
+      <div className="space-y-6 max-w-2xl">
+        {/* Tema Aplikasi */}
         <Card>
           <CardHeader>
             <CardTitle>Tema Aplikasi</CardTitle>
@@ -43,6 +44,60 @@ export default function SettingsPage() {
                 Pilih tema yang nyaman untuk mata Anda. Preferensi Anda akan
                 disimpan secara otomatis.
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Informasi Aplikasi */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              Informasi Aplikasi
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+                  Nama Aplikasi
+                </h3>
+                <p className="text-base font-medium">Kenangan Kelas</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+                  Versi
+                </h3>
+                <p className="text-base font-medium">1.0.0</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+                  Deskripsi
+                </h3>
+                <p className="text-base">
+                  Aplikasi untuk menyimpan dan mengelola kenangan kelas dengan fitur album foto, video, dan daftar siswa.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+                  Fitur Utama
+                </h3>
+                <ul className="text-base space-y-1 list-disc list-inside">
+                  <li>Album Foto kelas</li>
+                  <li>Album Video YouTube/Vimeo</li>
+                  <li>Daftar Siswa dengan kontak</li>
+                  <li>Pengaturan Tema (Gelap/Terang)</li>
+                </ul>
+              </div>
+
+              <div className="pt-2 border-t mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Dibuat dengan ❤️ untuk mengabadikan kenangan berharga bersama kelas Anda.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -1,13 +1,6 @@
 import { useState } from "react";
 import "@fontsource/inter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import PhotosPage from "./pages/photos";
 import VideosPage from "./pages/videos";
 import StudentsPage from "./pages/students";
@@ -33,54 +26,30 @@ function AppContent() {
         } shadow-sm border-b`}
       >
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-lg ${
-                  theme === "dark" ? "bg-indigo-900" : "bg-indigo-100"
+          <div className="flex items-center gap-3">
+            <div
+              className={`p-2 rounded-lg ${
+                theme === "dark" ? "bg-indigo-900" : "bg-indigo-100"
+              }`}
+            >
+              <GraduationCap className="h-8 w-8 text-indigo-600" />
+            </div>
+            <div>
+              <h1
+                className={`text-2xl font-bold ${
+                  theme === "dark" ? "text-white" : "text-gray-800"
                 }`}
               >
-                <GraduationCap className="h-8 w-8 text-indigo-600" />
-              </div>
-              <div>
-                <h1
-                  className={`text-2xl font-bold ${
-                    theme === "dark" ? "text-white" : "text-gray-800"
-                  }`}
-                >
-                  Kenangan Kelas
-                </h1>
-                <p
-                  className={`text-sm ${
-                    theme === "dark" ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
-                  Album Foto & Video
-                </p>
-              </div>
+                Kenangan Kelas
+              </h1>
+              <p
+                className={`text-sm ${
+                  theme === "dark" ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Album Foto & Video
+              </p>
             </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={
-                    theme === "dark"
-                      ? "hover:bg-slate-800 text-gray-200"
-                      : "hover:bg-gray-100"
-                  }
-                >
-                  <Settings className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setActiveTab("settings")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Pengaturan
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </header>
