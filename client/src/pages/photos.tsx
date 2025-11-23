@@ -60,8 +60,11 @@ export default function PhotosPage() {
   // Mouse state tracking - for pan on desktop
   const mouseStateRef = useRef({
     isMouseDown: false,
+    startX: 0,
+    startY: 0,
     prevX: 0,
     prevY: 0,
+    totalDragDist: 0,
   });
 
   const openPhotoViewer = (photo: Photo) => {
@@ -118,8 +121,11 @@ export default function PhotosPage() {
     if (zoom > 1) {
       e.preventDefault();
       mouseStateRef.current.isMouseDown = true;
+      mouseStateRef.current.startX = e.clientX;
+      mouseStateRef.current.startY = e.clientY;
       mouseStateRef.current.prevX = e.clientX;
       mouseStateRef.current.prevY = e.clientY;
+      mouseStateRef.current.totalDragDist = 0;
     }
   };
 
@@ -128,6 +134,9 @@ export default function PhotosPage() {
       e.preventDefault();
       const deltaX = e.clientX - mouseStateRef.current.prevX;
       const deltaY = e.clientY - mouseStateRef.current.prevY;
+      
+      // Track total drag distance
+      mouseStateRef.current.totalDragDist += Math.abs(deltaX) + Math.abs(deltaY);
       
       setPanX(prev => prev + deltaX);
       setPanY(prev => prev + deltaY);
@@ -142,8 +151,8 @@ export default function PhotosPage() {
   };
 
   const handleContainerClick = (e: React.MouseEvent) => {
-    // Only close if not dragging (i.e., isMouseDown is false)
-    if (!mouseStateRef.current.isMouseDown) {
+    // Only close if user barely dragged (threshold: 5px)
+    if (mouseStateRef.current.totalDragDist < 5) {
       closePhotoViewer();
     }
   };
