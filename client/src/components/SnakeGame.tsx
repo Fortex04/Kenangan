@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAudio } from '@/lib/stores/useAudio';
+import { useIsMobile } from '@/hooks/use-is-mobile';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react';
 
 interface Position {
   x: number;
@@ -36,7 +38,24 @@ export default function SnakeGame() {
   const obstaclesRef = useRef<Position[]>([]);
   const gameLoopRef = useRef<number | null>(null);
   
+  const isMobile = useIsMobile();
   const { playHit, playSuccess, backgroundMusic } = useAudio();
+
+  const handleDirectionChange = useCallback((direction: Direction) => {
+    if (gameState !== 'playing') return;
+    
+    const currentDirection = directionRef.current;
+    
+    if (direction === 'UP' && currentDirection !== 'DOWN') {
+      nextDirectionRef.current = 'UP';
+    } else if (direction === 'DOWN' && currentDirection !== 'UP') {
+      nextDirectionRef.current = 'DOWN';
+    } else if (direction === 'LEFT' && currentDirection !== 'RIGHT') {
+      nextDirectionRef.current = 'LEFT';
+    } else if (direction === 'RIGHT' && currentDirection !== 'LEFT') {
+      nextDirectionRef.current = 'RIGHT';
+    }
+  }, [gameState]);
 
   const generateObstacles = useCallback((count: number): Position[] => {
     const obstacles: Position[] = [];
@@ -447,12 +466,60 @@ export default function SnakeGame() {
 
       <div className="mt-6 text-center text-gray-400 max-w-md space-y-2">
         <p className="text-sm">
-          🎮 Controls: Arrow Keys or WASD • ESC/P to Pause
+          {isMobile ? '📱 Use buttons below to control' : '🎮 Controls: Arrow Keys or WASD • ESC/P to Pause'}
         </p>
         <p className="text-sm">
           🍎 Eat red food • 🧱 Avoid gray obstacles • ⚠️ Don't hit walls or yourself!
         </p>
       </div>
+
+      {isMobile && (
+        <div className="fixed bottom-4 left-0 right-0 flex items-center justify-center gap-8 px-4 z-10">
+          <div className="relative w-32 h-32">
+            <Button
+              onClick={() => handleDirectionChange('UP')}
+              disabled={gameState !== 'playing'}
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-12 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 rounded-lg"
+              size="icon"
+            >
+              <ArrowUp className="w-6 h-6" />
+            </Button>
+            <Button
+              onClick={() => handleDirectionChange('LEFT')}
+              disabled={gameState !== 'playing'}
+              className="absolute top-1/2 -translate-y-1/2 left-0 w-12 h-12 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 rounded-lg"
+              size="icon"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+            <Button
+              onClick={() => handleDirectionChange('RIGHT')}
+              disabled={gameState !== 'playing'}
+              className="absolute top-1/2 -translate-y-1/2 right-0 w-12 h-12 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 rounded-lg"
+              size="icon"
+            >
+              <ArrowRight className="w-6 h-6" />
+            </Button>
+            <Button
+              onClick={() => handleDirectionChange('DOWN')}
+              disabled={gameState !== 'playing'}
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-12 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 rounded-lg"
+              size="icon"
+            >
+              <ArrowDown className="w-6 h-6" />
+            </Button>
+          </div>
+
+          <Button
+            onClick={togglePause}
+            disabled={gameState !== 'playing' && gameState !== 'paused'}
+            className="w-16 h-16 bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-800 disabled:opacity-50 rounded-full"
+            size="icon"
+          >
+            {gameState === 'paused' ? <Play className="w-8 h-8" /> : <Pause className="w-8 h-8" />}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
