@@ -31,7 +31,7 @@ export interface IStorage {
   deleteStudent(id: number): Promise<boolean>;
   
   getAllPhotos(): Promise<Photo[]>;
-  getAllPhotosMetadata(): Promise<Array<{id: number; title: string | null; description: string | null; uploadedAt: Date | null}>>;
+  getAllPhotosMetadata(): Promise<Photo[]>;
   getPhoto(id: number): Promise<Photo | undefined>;
   createPhoto(photo: InsertPhoto): Promise<Photo>;
   deletePhoto(id: number): Promise<boolean>;
@@ -86,15 +86,9 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(photos);
   }
 
-  async getAllPhotosMetadata(): Promise<Array<{id: number; title: string | null; description: string | null; uploadedAt: Date | null}>> {
-    // Select only metadata columns, excluding fileData
-    const result = await db.select({
-      id: photos.id,
-      title: photos.title,
-      description: photos.description,
-      uploadedAt: photos.uploadedAt,
-    }).from(photos);
-    return result;
+  async getAllPhotosMetadata(): Promise<Photo[]> {
+    // Return all photos with fileData for gallery display
+    return await db.select().from(photos);
   }
 
   async getPhoto(id: number): Promise<Photo | undefined> {
