@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, X } from "lucide-react";
+import { Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
@@ -41,11 +41,37 @@ export default function PhotosPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [resolvedUrls, setResolvedUrls] = useState<Record<number, string>>({});
   const [formData, setFormData] = useState({
     description: "",
     url: "",
   });
+
+  const getCurrentPhoto = () => {
+    if (currentPhotoIndex >= 0 && currentPhotoIndex < photos.length) {
+      return photos[currentPhotoIndex];
+    }
+    return null;
+  };
+
+  const handlePrevPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
+  };
+
+  const handleNextPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
+  };
+
+  const openPhotoViewer = (photo: Photo) => {
+    const index = photos.findIndex(p => p.id === photo.id);
+    setCurrentPhotoIndex(index >= 0 ? index : 0);
+    setSelectedPhoto(photo);
+  };
+
+  const closePhotoViewer = () => {
+    setSelectedPhoto(null);
+  };
 
   const fetchPhotos = async () => {
     try {
@@ -81,6 +107,24 @@ export default function PhotosPage() {
   useEffect(() => {
     fetchPhotos();
   }, []);
+
+  // Keyboard navigation for fullscreen viewer
+  useEffect(() => {
+    if (!selectedPhoto) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePrevPhoto();
+      } else if (e.key === 'ArrowRight') {
+        handleNextPhoto();
+      } else if (e.key === 'Escape') {
+        closePhotoViewer();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPhoto, photos, currentPhotoIndex]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,7 +220,7 @@ export default function PhotosPage() {
               alt={photo.title || ""}
               className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200 cursor-pointer"
               crossOrigin="anonymous"
-              onClick={() => setSelectedPhoto(photo)}
+              onClick={() => openPhotoViewer(photo)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
@@ -202,31 +246,67 @@ export default function PhotosPage() {
         ))}
       </div>
 
-      {/* Fullscreen Photo Viewer */}
+      {/* Fullscreen Photo Viewer Gallery */}
       {selectedPhoto && (
         <div 
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setSelectedPhoto(null)}
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          onClick={() => closePhotoViewer()}
         >
           <div 
-            className="relative max-w-4xl max-h-full w-full"
+            className="relative w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Close Button */}
             <button
-              onClick={() => setSelectedPhoto(null)}
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              onClick={() => closePhotoViewer()}
+              className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors z-10"
             >
-              <X className="h-8 w-8" />
+              <X className="h-10 w-10" />
             </button>
-            <img
-              src={resolvedUrls[selectedPhoto.id] || selectedPhoto.url}
-              alt={selectedPhoto.title || ""}
-              className="w-full h-full object-contain rounded-lg"
-              crossOrigin="anonymous"
-            />
-            {selectedPhoto.description && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 rounded-b-lg">
-                <p className="text-white text-sm">{selectedPhoto.description}</p>
+
+            {/* Photo Counter */}
+            <div className="absolute top-6 left-6 text-white text-lg font-medium z-10">
+              {currentPhotoIndex + 1} / {photos.length}
+            </div>
+
+            {/* Previous Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevPhoto();
+              }}
+              className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2"
+              disabled={photos.length <= 1}
+            >
+              <ChevronLeft className="h-12 w-12" />
+            </button>
+
+            {/* Image */}
+            <div className="relative w-full h-full flex items-center justify-center px-20">
+              <img
+                src={resolvedUrls[getCurrentPhoto()?.id || selectedPhoto.id] || getCurrentPhoto()?.url || selectedPhoto.url}
+                alt={getCurrentPhoto()?.title || selectedPhoto.title || ""}
+                className="max-w-full max-h-full object-contain"
+                crossOrigin="anonymous"
+              />
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextPhoto();
+              }}
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2"
+              disabled={photos.length <= 1}
+            >
+              <ChevronRight className="h-12 w-12" />
+            </button>
+
+            {/* Description */}
+            {getCurrentPhoto()?.description && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-6">
+                <p className="text-white text-base">{getCurrentPhoto()?.description}</p>
               </div>
             )}
           </div>
