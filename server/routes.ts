@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertStudentSchema, insertPhotoSchema, insertVideoSchema } from "@shared/schema";
+import * as cheerio from "cheerio";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Students routes
@@ -60,25 +61,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return url;
       }
       
-      // For Google Photos short links, try to get the final URL
+      // For Google Photos short links, fetch and parse the HTML to extract image URL
       const response = await fetch(url, {
         method: 'GET',
         redirect: 'follow',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
       });
       
-      const finalUrl = response.url;
+      const html = await response.text();
+      const $ = cheerio.load(html);
       
-      // If it's a googleusercontent URL, optimize it
-      if (finalUrl.includes('lh3.googleusercontent.com') || finalUrl.includes('googleusercontent.com')) {
-        if (!finalUrl.includes('=w')) {
-          return finalUrl + (finalUrl.includes('?') ? '&' : '?') + 'w=1000';
+      // Try to extract image URL from various locations in the page
+      let imageUrl = '';
+      
+      // Try meta og:image tag first (most reliable)
+      imageUrl = $('meta[property="og:image"]').attr('content') || '';
+      
+      // If not found, try to find it in the page data or images
+      if (!imageUrl) {
+        // Look for data-src in images within the page
+        const images = $('img[data-src]');
+        if (images.length > 0) {
+          imageUrl = images.first().attr('data-src') || '';
         }
       }
       
-      return finalUrl;
+      // If still not found, try regular src attributes
+      if (!imageUrl) {
+        const imgs = $('img[src*="googleusercontent"]');
+        if (imgs.length > 0) {
+          imageUrl = imgs.first().attr('src') || '';
+        }
+      }
+      
+      // If we found an image URL, optimize it
+      if (imageUrl) {
+        if (imageUrl.includes('lh3.googleusercontent.com') || imageUrl.includes('googleusercontent.com')) {
+          if (!imageUrl.includes('=w')) {
+            return imageUrl + (imageUrl.includes('?') ? '&' : '?') + 'w=1000';
+          }
+        }
+        return imageUrl;
+      }
+      
+      // Fallback: return the response URL if we couldn't extract an image
+      console.warn('Could not extract image URL from Google Photos page, using fallback');
+      return response.url;
     } catch (error) {
       console.error('Error resolving photo URL:', error);
       return url;
