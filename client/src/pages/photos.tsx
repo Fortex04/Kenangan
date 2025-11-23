@@ -116,6 +116,7 @@ export default function PhotosPage() {
   // Mouse pan - desktop only
   const handleMouseDown = (e: React.MouseEvent) => {
     if (zoom > 1) {
+      e.preventDefault();
       mouseStateRef.current.isMouseDown = true;
       mouseStateRef.current.prevX = e.clientX;
       mouseStateRef.current.prevY = e.clientY;
@@ -124,6 +125,7 @@ export default function PhotosPage() {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (mouseStateRef.current.isMouseDown && zoom > 1) {
+      e.preventDefault();
       const deltaX = e.clientX - mouseStateRef.current.prevX;
       const deltaY = e.clientY - mouseStateRef.current.prevY;
       
@@ -137,6 +139,13 @@ export default function PhotosPage() {
 
   const handleMouseUp = () => {
     mouseStateRef.current.isMouseDown = false;
+  };
+
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // Only close if not dragging (i.e., isMouseDown is false)
+    if (!mouseStateRef.current.isMouseDown) {
+      closePhotoViewer();
+    }
   };
 
   const fetchPhotos = async () => {
@@ -318,7 +327,7 @@ export default function PhotosPage() {
       {selectedPhoto && (
         <div 
           className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden"
-          onClick={() => closePhotoViewer()}
+          onClick={handleContainerClick}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
