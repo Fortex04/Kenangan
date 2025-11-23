@@ -123,13 +123,18 @@ export default function PhotosPage() {
       }
       touchStateRef.current.prevDistance = distance;
     } else if (e.touches.length === 1 && touchStateRef.current.isDragging && zoom > 1) {
-      // Drag pan
+      // Drag pan - with smoothing dampening
       const touch = e.touches[0];
       const deltaX = touch.clientX - touchStateRef.current.prevX;
       const deltaY = touch.clientY - touchStateRef.current.prevY;
       
-      setPanX(prev => prev + deltaX);
-      setPanY(prev => prev + deltaY);
+      // Limit max delta per frame to smooth out jittery movements
+      const maxDelta = 50;
+      const limitedDeltaX = Math.max(-maxDelta, Math.min(maxDelta, deltaX));
+      const limitedDeltaY = Math.max(-maxDelta, Math.min(maxDelta, deltaY));
+      
+      setPanX(prev => prev + limitedDeltaX);
+      setPanY(prev => prev + limitedDeltaY);
       
       touchStateRef.current.prevX = touch.clientX;
       touchStateRef.current.prevY = touch.clientY;
@@ -163,11 +168,16 @@ export default function PhotosPage() {
       const deltaX = e.clientX - mouseStateRef.current.prevX;
       const deltaY = e.clientY - mouseStateRef.current.prevY;
       
-      // Track total drag distance
-      mouseStateRef.current.totalDragDist += Math.abs(deltaX) + Math.abs(deltaY);
+      // Limit max delta per frame for smoothness
+      const maxDelta = 50;
+      const limitedDeltaX = Math.max(-maxDelta, Math.min(maxDelta, deltaX));
+      const limitedDeltaY = Math.max(-maxDelta, Math.min(maxDelta, deltaY));
       
-      setPanX(prev => prev + deltaX);
-      setPanY(prev => prev + deltaY);
+      // Track total drag distance
+      mouseStateRef.current.totalDragDist += Math.abs(limitedDeltaX) + Math.abs(limitedDeltaY);
+      
+      setPanX(prev => prev + limitedDeltaX);
+      setPanY(prev => prev + limitedDeltaY);
       
       mouseStateRef.current.prevX = e.clientX;
       mouseStateRef.current.prevY = e.clientY;
