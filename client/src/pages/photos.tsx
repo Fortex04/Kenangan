@@ -47,6 +47,8 @@ export default function PhotosPage() {
   const [formData, setFormData] = useState({
     description: "",
     url: "",
+    fileData: "",
+    file: null as File | null,
   });
 
   // Touch state tracking
@@ -268,13 +270,31 @@ export default function PhotosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      let fileData = formData.fileData;
+      
+      // If file selected, convert to base64
+      if (formData.file) {
+        fileData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(formData.file);
+        });
+      }
+      
+      const photoData = {
+        description: formData.description,
+        url: formData.url,
+        fileData: fileData,
+      };
+      
       const response = await fetch("/api/photos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(photoData),
       });
       if (response.ok) {
-        setFormData({ description: "", url: "" });
+        setFormData({ description: "", url: "", fileData: "", file: null });
         setOpen(false);
         fetchPhotos();
       }
@@ -325,16 +345,27 @@ export default function PhotosPage() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="url">URL Foto</Label>
+                <Label htmlFor="file">Pilih Foto dari Komputer</Label>
+                <Input
+                  id="file"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
+                />
+                <p className="text-xs text-gray-500 mt-1">atau</p>
+              </div>
+              
+              <div>
+                <Label htmlFor="url">URL Foto (opsional)</Label>
                 <Input
                   id="url"
                   type="url"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   placeholder="https://example.com/photo.jpg"
-                  required
                 />
               </div>
+              
               <div>
                 <Label htmlFor="description">Deskripsi</Label>
                 <Textarea
@@ -343,7 +374,9 @@ export default function PhotosPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
-              <Button type="submit" className="w-full">Simpan</Button>
+              <Button type="submit" className="w-full" disabled={!formData.file && !formData.url}>
+                Simpan
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -355,7 +388,11 @@ export default function PhotosPage() {
         {photos.map((photo) => (
           <div key={photo.id} className="relative group rounded-md overflow-hidden bg-gray-200">
             <img
-              src={resolvedUrls[photo.id] || `/api/photos/proxy?url=${encodeURIComponent(photo.url)}`}
+              src={
+                photo.fileData || 
+                resolvedUrls[photo.id] || 
+                (photo.url ? `/api/photos/proxy?url=${encodeURIComponent(photo.url)}` : "")
+              }
               alt={photo.title || ""}
               className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200 cursor-pointer"
               onClick={() => openPhotoViewer(photo)}
@@ -415,7 +452,11 @@ export default function PhotosPage() {
 
             {/* Main Image with Zoom */}
             <img
-              src={resolvedUrls[selectedPhoto.id] || `/api/photos/proxy?url=${encodeURIComponent(selectedPhoto.url)}`}
+              src={
+                selectedPhoto.fileData || 
+                resolvedUrls[selectedPhoto.id] || 
+                (selectedPhoto.url ? `/api/photos/proxy?url=${encodeURIComponent(selectedPhoto.url)}` : "")
+              }
               alt={selectedPhoto.title || ""}
               className="max-w-full max-h-full object-contain transition-transform duration-75 ease-out"
               style={{

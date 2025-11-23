@@ -35,15 +35,19 @@ export const photos = pgTable("photos", {
   id: serial("id").primaryKey(),
   title: text("title"),
   description: text("description"),
-  url: text("url").notNull(),
+  url: text("url"),
+  fileData: text("file_data"), // Store base64 or file data
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
 export const insertPhotoSchema = createInsertSchema(photos).pick({
   description: true,
   url: true,
+  fileData: true,
 }).extend({
   title: z.string().optional(),
+  url: z.string().optional(),
+  fileData: z.string().optional(),
 });
 
 export type InsertPhoto = z.infer<typeof insertPhotoSchema>;

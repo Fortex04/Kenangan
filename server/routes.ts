@@ -204,10 +204,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/photos", async (req, res) => {
     try {
-      const validatedData = insertPhotoSchema.parse(req.body);
+      const { description, title, url, fileData } = req.body;
+      
+      // Either fileData (uploaded file) or url (external link)
+      if (!fileData && !url) {
+        res.status(400).json({ error: "Either fileData or url is required" });
+        return;
+      }
+      
+      const validatedData = insertPhotoSchema.parse({
+        description: description || "",
+        title: title || "",
+        url: url || "",
+        fileData: fileData || null,
+      });
+      
       const photo = await storage.createPhoto(validatedData);
       res.status(201).json(photo);
     } catch (error) {
+      console.error("Error creating photo:", error);
       res.status(400).json({ error: "Invalid photo data" });
     }
   });
