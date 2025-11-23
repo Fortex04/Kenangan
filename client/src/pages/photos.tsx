@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, Plus, X } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
@@ -279,18 +279,6 @@ export default function PhotosPage() {
               {currentPhotoIndex + 1} / {photos.length}
             </div>
 
-            {/* Previous Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePrevPhoto();
-              }}
-              className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-20 p-2"
-              disabled={photos.length <= 1}
-            >
-              <ChevronLeft className="h-12 w-12" />
-            </button>
-
             {/* Main Image */}
             <div className="relative w-full h-full flex items-center justify-center px-10">
               <img
@@ -300,18 +288,6 @@ export default function PhotosPage() {
                 crossOrigin="anonymous"
               />
             </div>
-
-            {/* Next Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNextPhoto();
-              }}
-              className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-20 p-2"
-              disabled={photos.length <= 1}
-            >
-              <ChevronRight className="h-12 w-12" />
-            </button>
 
             {/* Description at Bottom */}
             {getCurrentPhoto()?.description && (
