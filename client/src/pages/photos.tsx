@@ -41,43 +41,18 @@ export default function PhotosPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [showFilmstrip, setShowFilmstrip] = useState(true);
   const [resolvedUrls, setResolvedUrls] = useState<Record<number, string>>({});
   const [formData, setFormData] = useState({
     description: "",
     url: "",
   });
 
-  const getCurrentPhoto = () => {
-    if (currentPhotoIndex >= 0 && currentPhotoIndex < photos.length) {
-      return photos[currentPhotoIndex];
-    }
-    return null;
-  };
-
-  const handlePrevPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
-  };
-
-  const handleNextPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
-  };
-
   const openPhotoViewer = (photo: Photo) => {
-    const index = photos.findIndex(p => p.id === photo.id);
-    setCurrentPhotoIndex(index >= 0 ? index : 0);
     setSelectedPhoto(photo);
-    setShowFilmstrip(true);
   };
 
   const closePhotoViewer = () => {
     setSelectedPhoto(null);
-    setShowFilmstrip(true);
-  };
-
-  const toggleFilmstrip = () => {
-    setShowFilmstrip(!showFilmstrip);
   };
 
   const fetchPhotos = async () => {
@@ -120,18 +95,14 @@ export default function PhotosPage() {
     if (!selectedPhoto) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        handlePrevPhoto();
-      } else if (e.key === 'ArrowRight') {
-        handleNextPhoto();
-      } else if (e.key === 'Escape') {
+      if (e.key === 'Escape') {
         closePhotoViewer();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPhoto, photos, currentPhotoIndex]);
+  }, [selectedPhoto]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,18 +224,15 @@ export default function PhotosPage() {
         ))}
       </div>
 
-      {/* Fullscreen Photo Gallery with Filmstrip */}
+      {/* Fullscreen Photo Viewer */}
       {selectedPhoto && (
         <div 
-          className="fixed inset-0 z-50 bg-black flex"
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
           onClick={() => closePhotoViewer()}
         >
-          {/* Main Photo Area */}
           <div 
-            className={`relative flex items-center justify-center overflow-hidden transition-all ${
-              showFilmstrip ? 'flex-1' : 'w-full'
-            }`}
-            onClick={toggleFilmstrip}
+            className="relative w-full h-full flex items-center justify-center px-10"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
@@ -274,52 +242,21 @@ export default function PhotosPage() {
               <X className="h-10 w-10" />
             </button>
 
-            {/* Photo Counter */}
-            <div className="absolute top-6 left-6 text-white text-lg font-medium z-20">
-              {currentPhotoIndex + 1} / {photos.length}
-            </div>
-
             {/* Main Image */}
-            <div className="relative w-full h-full flex items-center justify-center px-10">
-              <img
-                src={resolvedUrls[getCurrentPhoto()?.id || selectedPhoto.id] || getCurrentPhoto()?.url || selectedPhoto.url}
-                alt={getCurrentPhoto()?.title || selectedPhoto.title || ""}
-                className="max-w-full max-h-full object-contain"
-                crossOrigin="anonymous"
-              />
-            </div>
+            <img
+              src={resolvedUrls[selectedPhoto.id] || selectedPhoto.url}
+              alt={selectedPhoto.title || ""}
+              className="max-w-full max-h-full object-contain"
+              crossOrigin="anonymous"
+            />
 
             {/* Description at Bottom */}
-            {getCurrentPhoto()?.description && (
+            {selectedPhoto.description && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-6 z-20">
-                <p className="text-white text-base">{getCurrentPhoto()?.description}</p>
+                <p className="text-white text-base">{selectedPhoto.description}</p>
               </div>
             )}
           </div>
-
-          {/* Thumbnail Filmstrip - Right Side (30%) */}
-          {showFilmstrip && (
-          <div className="w-32 bg-gray-900/50 overflow-y-auto flex flex-col gap-2 p-2 transition-all">
-            {photos.map((photo, index) => (
-              <button
-                key={photo.id}
-                onClick={() => setCurrentPhotoIndex(index)}
-                className={`flex-shrink-0 h-24 rounded-md overflow-hidden transition-all ${
-                  index === currentPhotoIndex 
-                    ? 'ring-2 ring-blue-500 opacity-100' 
-                    : 'opacity-60 hover:opacity-100'
-                }`}
-              >
-                <img
-                  src={resolvedUrls[photo.id] || photo.url}
-                  alt={photo.title || ""}
-                  className="w-full h-full object-cover"
-                  crossOrigin="anonymous"
-                />
-              </button>
-            ))}
-          </div>
-          )}
         </div>
       )}
 
