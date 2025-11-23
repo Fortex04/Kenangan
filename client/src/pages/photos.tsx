@@ -47,7 +47,6 @@ export default function PhotosPage() {
   const [zoom, setZoom] = useState(1);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
-  const [zoomBlockedThisSession, setZoomBlockedThisSession] = useState(false);
   const [formData, setFormData] = useState({
     description: "",
     url: "",
@@ -67,42 +66,51 @@ export default function PhotosPage() {
     setPanY(0);
   };
 
-  // Handle pinch zoom gesture - only zoom in during single touch session, then can zoom out after releasing
+  // Handle touch gestures - pinch zoom and drag pan
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length !== 2) return;
+    const container = e.currentTarget as any;
     
-    const touch1 = e.touches[0];
-    const touch2 = e.touches[1];
-    
-    const distance = Math.hypot(
-      touch2.clientX - touch1.clientX,
-      touch2.clientY - touch1.clientY
-    );
-    
-    // Store initial distance for next move
-    const lastDistance = (e.currentTarget as any).lastTouchDistance || distance;
-    const scale = distance / lastDistance;
-    
-    // During single touch session: don't zoom out after zooming in
-    setZoom(prev => {
-      const newZoom = prev * scale;
+    if (e.touches.length === 2) {
+      // Two fingers: pinch zoom
+      e.preventDefault();
       
-      // If already zoomed in (prev > 1) and trying to zoom out (scale < 1): block it this session
-      if (prev > 1 && scale < 1) {
-        setZoomBlockedThisSession(true);
-        return prev; // Keep current zoom, block zoom out
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      
+      // Store initial distance for next move
+      const lastDistance = container.lastTouchDistance || distance;
+      const scale = distance / lastDistance;
+      
+      setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
+      container.lastTouchDistance = distance;
+    } else if (e.touches.length === 1 && zoom > 1) {
+      // One finger: drag pan (only when zoomed in)
+      e.preventDefault();
+      
+      const touch = e.touches[0];
+      const lastTouch = container.lastTouchPos;
+      
+      if (lastTouch) {
+        const deltaX = touch.clientX - lastTouch.x;
+        const deltaY = touch.clientY - lastTouch.y;
+        
+        setPanX(prev => prev + deltaX);
+        setPanY(prev => prev + deltaY);
       }
       
-      // Otherwise allow normal zoom in/out with limits
-      return Math.max(1, Math.min(4, newZoom));
-    });
-    (e.currentTarget as any).lastTouchDistance = distance;
+      container.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+    }
   };
 
-  const handleTouchEnd = () => {
-    (window as any).lastTouchDistance = null;
-    // Reset block when user releases - next touch can zoom out
-    setZoomBlockedThisSession(false);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const container = e.currentTarget as any;
+    container.lastTouchDistance = null;
+    container.lastTouchPos = null;
   };
 
   const fetchPhotos = async () => {
