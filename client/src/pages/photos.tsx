@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, X } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
@@ -40,6 +40,7 @@ export default function PhotosPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [formData, setFormData] = useState({
     description: "",
     url: "",
@@ -157,8 +158,9 @@ export default function PhotosPage() {
             <img
               src={getImageUrl(photo.url)}
               alt={photo.title || ""}
-              className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200"
+              className="w-full h-full object-cover aspect-square hover:scale-105 transition-transform duration-200 cursor-pointer"
               crossOrigin="anonymous"
+              onClick={() => setSelectedPhoto(photo)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 // Try alternative format for Google Photos if first attempt fails
@@ -176,7 +178,10 @@ export default function PhotosPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleDelete(photo.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(photo.id);
+              }}
               className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
             >
               <Trash2 className="h-4 w-4 text-red-500" />
@@ -189,6 +194,37 @@ export default function PhotosPage() {
           </div>
         ))}
       </div>
+
+      {/* Fullscreen Photo Viewer */}
+      {selectedPhoto && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div 
+            className="relative max-w-4xl max-h-full w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X className="h-8 w-8" />
+            </button>
+            <img
+              src={getImageUrl(selectedPhoto.url)}
+              alt={selectedPhoto.title || ""}
+              className="w-full h-full object-contain rounded-lg"
+              crossOrigin="anonymous"
+            />
+            {selectedPhoto.description && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 rounded-b-lg">
+                <p className="text-white text-sm">{selectedPhoto.description}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {photos.length === 0 && (
         <div className={`text-center py-12 ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>
