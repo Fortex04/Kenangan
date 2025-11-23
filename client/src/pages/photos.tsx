@@ -10,7 +10,7 @@ import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
 // Helper function to get resolved image URL with proxy
-const getResolvedImageUrl = async (url: string): Promise<string> => {
+const getResolvedImageUrl = async (url: string, isFullscreen: boolean = false): Promise<string> => {
   try {
     let resolvedUrl = url;
     
@@ -24,8 +24,13 @@ const getResolvedImageUrl = async (url: string): Promise<string> => {
     
     // If it's already a googleusercontent URL, optimize it
     if (resolvedUrl.includes('lh3.googleusercontent.com') || resolvedUrl.includes('googleusercontent.com')) {
+      // Use high quality for fullscreen, medium for thumbnails
+      const width = isFullscreen ? 2560 : 800;
       if (!resolvedUrl.includes('=w')) {
-        resolvedUrl = resolvedUrl + (resolvedUrl.includes('?') ? '&' : '?') + 'w=1000';
+        resolvedUrl = resolvedUrl + (resolvedUrl.includes('?') ? '&' : '?') + `w=${width}`;
+      } else {
+        // Replace existing width with new one
+        resolvedUrl = resolvedUrl.replace(/[?&]w=\d+/, `&w=${width}`);
       }
     }
     
@@ -244,8 +249,25 @@ export default function PhotosPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhoto]);
 
-  // Reset zoom when photo changes
+  // Load high quality URL when fullscreen viewer opens
   useEffect(() => {
+    if (!selectedPhoto) return;
+
+    const loadHighQualityUrl = async () => {
+      try {
+        const highQualityUrl = await getResolvedImageUrl(selectedPhoto.url, true);
+        setResolvedUrls(prev => ({
+          ...prev,
+          [selectedPhoto.id]: highQualityUrl
+        }));
+      } catch (error) {
+        console.error('Error loading high quality URL:', error);
+      }
+    };
+
+    loadHighQualityUrl();
+    
+    // Reset zoom when photo changes
     setZoom(1);
     setPanX(0);
     setPanY(0);
