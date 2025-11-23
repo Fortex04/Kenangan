@@ -66,7 +66,7 @@ export default function PhotosPage() {
     setPanY(0);
   };
 
-  // Handle pinch zoom gesture
+  // Handle pinch zoom gesture - only zoom in, not out after zoomed
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length !== 2) return;
     
@@ -82,12 +82,24 @@ export default function PhotosPage() {
     const lastDistance = (e.currentTarget as any).lastTouchDistance || distance;
     const scale = distance / lastDistance;
     
-    setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
+    // Once zoomed in, only allow zoom in more (not zoom out)
+    setZoom(prev => {
+      const newZoom = prev * scale;
+      
+      // If already zoomed in (prev > 1) and trying to zoom out (scale < 1): block it
+      if (prev > 1 && scale < 1) {
+        return prev; // Keep current zoom, block zoom out
+      }
+      
+      // Otherwise allow normal zoom in/out with limits
+      return Math.max(1, Math.min(4, newZoom));
+    });
     (e.currentTarget as any).lastTouchDistance = distance;
   };
 
   const handleTouchEnd = () => {
     (window as any).lastTouchDistance = null;
+    // Don't auto zoom out - keep zoom level when user releases
   };
 
   const fetchPhotos = async () => {
