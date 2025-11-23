@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, X } from "lucide-react";
+import { Trash2, Plus, X, Loader } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import type { Photo } from "@shared/schema";
 
@@ -71,6 +71,8 @@ export default function PhotosPage() {
   });
 
   const openPhotoViewer = async (photo: Photo) => {
+    // Set a loading state - use a temporary object to indicate loading
+    setSelectedPhoto({ ...photo, fileData: "" } as any);
     try {
       // Fetch full photo data with fileData
       const response = await fetch(`/api/photos/${photo.id}`);
@@ -409,7 +411,14 @@ export default function PhotosPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={!formData.file || uploading}>
-                {uploading ? "Menyimpan..." : "Simpan"}
+                {uploading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader className="h-4 w-4 animate-spin" />
+                    Sedang mengupload...
+                  </span>
+                ) : (
+                  "Simpan"
+                )}
               </Button>
             </form>
           </DialogContent>
@@ -484,26 +493,36 @@ export default function PhotosPage() {
               <X className="h-10 w-10" />
             </button>
 
+            {/* Loading Indicator */}
+            {!selectedPhoto.fileData && !resolvedUrls[selectedPhoto.id] && (
+              <div className="flex flex-col items-center justify-center gap-3">
+                <Loader className="h-12 w-12 text-white animate-spin" />
+                <p className="text-white text-lg">Sedang memuat foto...</p>
+              </div>
+            )}
+
             {/* Main Image with Zoom */}
-            <img
-              src={
-                selectedPhoto.fileData || 
-                resolvedUrls[selectedPhoto.id] ||
-                'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3C/svg%3E'
-              }
-              alt={selectedPhoto.title || ""}
-              className="max-w-full max-h-full object-contain transition-transform duration-75 ease-out"
-              style={{
-                transform: `scale(${zoom}) translate(${panX}px, ${panY}px)`,
-                transformOrigin: 'center',
-                touchAction: 'manipulation',
-                userSelect: 'none'
-              }}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo image%3C/text%3E%3C/svg%3E';
-              }}
-            />
+            {(selectedPhoto.fileData || resolvedUrls[selectedPhoto.id]) && (
+              <img
+                src={
+                  selectedPhoto.fileData || 
+                  resolvedUrls[selectedPhoto.id] ||
+                  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3C/svg%3E'
+                }
+                alt={selectedPhoto.title || ""}
+                className="max-w-full max-h-full object-contain transition-transform duration-75 ease-out"
+                style={{
+                  transform: `scale(${zoom}) translate(${panX}px, ${panY}px)`,
+                  transformOrigin: 'center',
+                  touchAction: 'manipulation',
+                  userSelect: 'none'
+                }}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo image%3C/text%3E%3C/svg%3E';
+                }}
+              />
+            )}
 
             {/* Zoom Level Indicator */}
             {zoom > 1 && (
