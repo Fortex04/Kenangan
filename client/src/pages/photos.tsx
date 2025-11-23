@@ -105,10 +105,10 @@ export default function PhotosPage() {
       }
       touchStateRef.current.prevDistance = distance;
     } else if (e.touches.length === 1 && zoom > 1) {
-      // Drag pan (only when zoomed)
+      // Drag pan (only when zoomed) - with dampening
       const touch = e.touches[0];
-      const deltaX = touch.clientX - touchStateRef.current.prevX;
-      const deltaY = touch.clientY - touchStateRef.current.prevY;
+      const deltaX = (touch.clientX - touchStateRef.current.prevX) * 0.7;
+      const deltaY = (touch.clientY - touchStateRef.current.prevY) * 0.7;
       
       setPanX(prev => prev + deltaX);
       setPanY(prev => prev + deltaY);
