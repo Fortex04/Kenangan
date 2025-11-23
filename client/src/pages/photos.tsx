@@ -70,8 +70,16 @@ export default function PhotosPage() {
   const handleTouchMove = (e: React.TouchEvent) => {
     const container = e.currentTarget as any;
     
+    // If finger count changed, reset all tracking
+    if (e.touches.length !== (container.lastTouchCount || 0)) {
+      container.lastTouchDistance = null;
+      container.lastTouchPos = null;
+      container.lastTouchCount = e.touches.length;
+      return;
+    }
+    
     if (e.touches.length === 2) {
-      // Two fingers: pinch zoom
+      // Two fingers: pinch zoom only
       e.preventDefault();
       
       const touch1 = e.touches[0];
@@ -82,28 +90,30 @@ export default function PhotosPage() {
         touch2.clientY - touch1.clientY
       );
       
-      // Store initial distance for next move
-      const lastDistance = container.lastTouchDistance || distance;
-      const scale = distance / lastDistance;
-      
-      setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
-      container.lastTouchDistance = distance;
-    } else if (e.touches.length === 1 && zoom > 1) {
-      // One finger: drag pan (only when zoomed in)
-      e.preventDefault();
-      
-      const touch = e.touches[0];
-      const lastTouch = container.lastTouchPos;
-      
-      if (lastTouch) {
-        const deltaX = touch.clientX - lastTouch.x;
-        const deltaY = touch.clientY - lastTouch.y;
-        
-        setPanX(prev => prev + deltaX);
-        setPanY(prev => prev + deltaY);
+      const lastDistance = container.lastTouchDistance;
+      if (lastDistance) {
+        const scale = distance / lastDistance;
+        setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
       }
-      
-      container.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+      container.lastTouchDistance = distance;
+    } else if (e.touches.length === 1) {
+      // One finger: drag pan (only when zoomed in)
+      if (zoom > 1) {
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const lastTouch = container.lastTouchPos;
+        
+        if (lastTouch) {
+          const deltaX = touch.clientX - lastTouch.x;
+          const deltaY = touch.clientY - lastTouch.y;
+          
+          setPanX(prev => prev + deltaX);
+          setPanY(prev => prev + deltaY);
+        }
+        
+        container.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+      }
     }
   };
 
@@ -111,6 +121,7 @@ export default function PhotosPage() {
     const container = e.currentTarget as any;
     container.lastTouchDistance = null;
     container.lastTouchPos = null;
+    container.lastTouchCount = e.touches.length;
   };
 
   const fetchPhotos = async () => {
