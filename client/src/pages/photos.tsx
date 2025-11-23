@@ -44,6 +44,9 @@ export default function PhotosPage() {
   const [open, setOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [resolvedUrls, setResolvedUrls] = useState<Record<number, string>>({});
+  const [zoom, setZoom] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
   const [formData, setFormData] = useState({
     description: "",
     url: "",
@@ -51,10 +54,40 @@ export default function PhotosPage() {
 
   const openPhotoViewer = (photo: Photo) => {
     setSelectedPhoto(photo);
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
   };
 
   const closePhotoViewer = () => {
     setSelectedPhoto(null);
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
+  };
+
+  // Handle pinch zoom gesture
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length !== 2) return;
+    
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    
+    const distance = Math.hypot(
+      touch2.clientX - touch1.clientX,
+      touch2.clientY - touch1.clientY
+    );
+    
+    // Store initial distance for next move
+    const lastDistance = (e.currentTarget as any).lastTouchDistance || distance;
+    const scale = distance / lastDistance;
+    
+    setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
+    (e.currentTarget as any).lastTouchDistance = distance;
+  };
+
+  const handleTouchEnd = () => {
+    (window as any).lastTouchDistance = null;
   };
 
   const fetchPhotos = async () => {
@@ -105,6 +138,13 @@ export default function PhotosPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhoto]);
+
+  // Reset zoom when photo changes
+  useEffect(() => {
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
+  }, [selectedPhoto?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,12 +268,18 @@ export default function PhotosPage() {
       {/* Fullscreen Photo Viewer */}
       {selectedPhoto && (
         <div 
-          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden"
           onClick={() => closePhotoViewer()}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <div 
             className="relative w-full h-full flex items-center justify-center px-10"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              overflow: 'auto',
+              WebkitOverflowScrolling: 'touch'
+            }}
           >
             {/* Close Button */}
             <button
@@ -243,16 +289,29 @@ export default function PhotosPage() {
               <X className="h-10 w-10" />
             </button>
 
-            {/* Main Image */}
+            {/* Main Image with Zoom */}
             <img
               src={resolvedUrls[selectedPhoto.id] || `/api/photos/proxy?url=${encodeURIComponent(selectedPhoto.url)}`}
               alt={selectedPhoto.title || ""}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain transition-transform duration-75 ease-out"
+              style={{
+                transform: `scale(${zoom}) translate(${panX}px, ${panY}px)`,
+                transformOrigin: 'center',
+                touchAction: 'manipulation',
+                userSelect: 'none'
+              }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo image%3C/text%3E%3C/svg%3E';
               }}
             />
+
+            {/* Zoom Level Indicator */}
+            {zoom > 1 && (
+              <div className="absolute top-6 left-6 text-white text-sm font-medium z-20 bg-black/50 px-3 py-1 rounded">
+                {Math.round(zoom * 100)}%
+              </div>
+            )}
 
             {/* Description at Bottom */}
             {selectedPhoto.description && (
