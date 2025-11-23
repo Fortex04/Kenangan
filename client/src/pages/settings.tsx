@@ -58,13 +58,13 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm leading-relaxed">
             <p>
-              Aplikasi ini dibuat sebagai tempat menyimpan jejak waktu yang perlahan pergi.
+              Aplikasi ini dibuat khusus sebagai tempat menyimpan jejak waktu yang perlahan pergi.
               Foto, video, nama siswa, dan nomor kontak dikumpulkan bukan sekadar sebagai data,
               tapi sebagai potongan cerita yang suatu hari mungkin sulit kita temukan lagi.
             </p>
 
             <p>
-              Di sini, setiap momen direkam agar tetap hidup—
+              Di sini, setiap momen direkam agar tetap hidup
               tawa yang dulu memenuhi kelas, wajah-wajah yang berubah, dan langkah-langkah kecil
               yang membawa kita ke tempat yang berbeda.
             </p>
@@ -83,7 +83,7 @@ export default function SettingsPage() {
             <p>
               Aplikasi ini hadir sebagai pengingat lembut,
               bahwa kenangan bukan untuk dilupakan,
-              melainkan dijaga—karena waktu tak selalu memberi kesempatan kedua
+              melainkan dijaga karena waktu tak selalu memberi kesempatan kedua
               untuk melihat semuanya kembali secara utuh.
             </p>
 
