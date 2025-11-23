@@ -52,13 +52,16 @@ export default function PhotosPage() {
     url: "",
   });
 
-  // Touch state tracking
+  // Touch state tracking - only for zoom
   const touchStateRef = useRef({
     prevDistance: 0,
+  });
+
+  // Mouse state tracking - for pan on desktop
+  const mouseStateRef = useRef({
+    isMouseDown: false,
     prevX: 0,
     prevY: 0,
-    isZooming: false,
-    isPanning: false,
   });
 
   const openPhotoViewer = (photo: Photo) => {
@@ -75,10 +78,9 @@ export default function PhotosPage() {
     setPanY(0);
   };
 
-  // Simplified touch handling
+  // Only handle 2-finger zoom - NO pan on touch
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // Starting zoom gesture
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -86,63 +88,55 @@ export default function PhotosPage() {
         touch2.clientY - touch1.clientY
       );
       touchStateRef.current.prevDistance = distance;
-      touchStateRef.current.isZooming = true;
-      touchStateRef.current.isPanning = false;
-    } else if (e.touches.length === 1) {
-      // Starting pan gesture
-      touchStateRef.current.prevX = e.touches[0].clientX;
-      touchStateRef.current.prevY = e.touches[0].clientY;
-      touchStateRef.current.isPanning = true;
-      touchStateRef.current.isZooming = false;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // Pinch zoom (only if we started with 2 fingers)
-      if (touchStateRef.current.isZooming) {
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        const distance = Math.hypot(
-          touch2.clientX - touch1.clientX,
-          touch2.clientY - touch1.clientY
-        );
-        
-        if (touchStateRef.current.prevDistance > 0) {
-          const scale = distance / touchStateRef.current.prevDistance;
-          setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
-        }
-        touchStateRef.current.prevDistance = distance;
+      // Pinch zoom ONLY
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      
+      if (touchStateRef.current.prevDistance > 0) {
+        const scale = distance / touchStateRef.current.prevDistance;
+        setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
       }
-    } else if (e.touches.length === 1) {
-      // Handle 1 finger
-      if (touchStateRef.current.isZooming) {
-        // Transitioning from 2-finger to 1-finger: initialize pan coordinates
-        touchStateRef.current.prevX = e.touches[0].clientX;
-        touchStateRef.current.prevY = e.touches[0].clientY;
-        touchStateRef.current.isZooming = false;
-        touchStateRef.current.isPanning = true;
-      } else if (touchStateRef.current.isPanning && zoom > 1) {
-        // Continue panning
-        const touch = e.touches[0];
-        const deltaX = (touch.clientX - touchStateRef.current.prevX) * 0.8;
-        const deltaY = (touch.clientY - touchStateRef.current.prevY) * 0.8;
-        
-        setPanX(prev => prev + deltaX);
-        setPanY(prev => prev + deltaY);
-        
-        touchStateRef.current.prevX = touch.clientX;
-        touchStateRef.current.prevY = touch.clientY;
-      }
+      touchStateRef.current.prevDistance = distance;
     }
   };
 
   const handleTouchEnd = () => {
     touchStateRef.current.prevDistance = 0;
-    touchStateRef.current.prevX = 0;
-    touchStateRef.current.prevY = 0;
-    touchStateRef.current.isZooming = false;
-    touchStateRef.current.isPanning = false;
+  };
+
+  // Mouse pan - desktop only
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      mouseStateRef.current.isMouseDown = true;
+      mouseStateRef.current.prevX = e.clientX;
+      mouseStateRef.current.prevY = e.clientY;
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (mouseStateRef.current.isMouseDown && zoom > 1) {
+      const deltaX = e.clientX - mouseStateRef.current.prevX;
+      const deltaY = e.clientY - mouseStateRef.current.prevY;
+      
+      setPanX(prev => prev + deltaX);
+      setPanY(prev => prev + deltaY);
+      
+      mouseStateRef.current.prevX = e.clientX;
+      mouseStateRef.current.prevY = e.clientY;
+    }
+  };
+
+  const handleMouseUp = () => {
+    mouseStateRef.current.isMouseDown = false;
   };
 
   const fetchPhotos = async () => {
@@ -328,6 +322,10 @@ export default function PhotosPage() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         >
           <div 
             className="relative w-full h-full flex items-center justify-center px-10"
