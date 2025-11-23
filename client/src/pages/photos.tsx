@@ -52,11 +52,13 @@ export default function PhotosPage() {
     url: "",
   });
 
-  // Touch state tracking - simplified
+  // Touch state tracking
   const touchStateRef = useRef({
     prevDistance: 0,
     prevX: 0,
     prevY: 0,
+    isZooming: false,
+    isPanning: false,
   });
 
   const openPhotoViewer = (photo: Photo) => {
@@ -76,6 +78,7 @@ export default function PhotosPage() {
   // Simplified touch handling
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Starting zoom gesture
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -83,14 +86,19 @@ export default function PhotosPage() {
         touch2.clientY - touch1.clientY
       );
       touchStateRef.current.prevDistance = distance;
+      touchStateRef.current.isZooming = true;
+      touchStateRef.current.isPanning = false;
     } else if (e.touches.length === 1) {
+      // Starting pan gesture
       touchStateRef.current.prevX = e.touches[0].clientX;
       touchStateRef.current.prevY = e.touches[0].clientY;
+      touchStateRef.current.isPanning = true;
+      touchStateRef.current.isZooming = false;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
+    if (e.touches.length === 2 && touchStateRef.current.isZooming) {
       // Pinch zoom
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
@@ -104,17 +112,21 @@ export default function PhotosPage() {
         setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
       }
       touchStateRef.current.prevDistance = distance;
-    } else if (e.touches.length === 1 && zoom > 1) {
-      // Drag pan (only when zoomed) - with dampening
+    } else if (e.touches.length === 1 && touchStateRef.current.isPanning && zoom > 1) {
+      // Drag pan (only when zoomed)
       const touch = e.touches[0];
-      const deltaX = (touch.clientX - touchStateRef.current.prevX) * 0.7;
-      const deltaY = (touch.clientY - touchStateRef.current.prevY) * 0.7;
+      const deltaX = (touch.clientX - touchStateRef.current.prevX) * 0.8;
+      const deltaY = (touch.clientY - touchStateRef.current.prevY) * 0.8;
       
       setPanX(prev => prev + deltaX);
       setPanY(prev => prev + deltaY);
       
       touchStateRef.current.prevX = touch.clientX;
       touchStateRef.current.prevY = touch.clientY;
+    } else if (e.touches.length === 1 && touchStateRef.current.isZooming) {
+      // Transitioning from 2-finger to 1-finger: stop zoom, don't start pan
+      touchStateRef.current.isZooming = false;
+      touchStateRef.current.isPanning = false;
     }
   };
 
@@ -122,6 +134,8 @@ export default function PhotosPage() {
     touchStateRef.current.prevDistance = 0;
     touchStateRef.current.prevX = 0;
     touchStateRef.current.prevY = 0;
+    touchStateRef.current.isZooming = false;
+    touchStateRef.current.isPanning = false;
   };
 
   const fetchPhotos = async () => {
