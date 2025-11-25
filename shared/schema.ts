@@ -52,16 +52,18 @@ export type Photo = typeof photos.$inferSelect;
 
 export const videos = pgTable("videos", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: text("title"),
   description: text("description"),
-  url: text("url").notNull(),
+  fileData: text("file_data"), // Store video as base64
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
 export const insertVideoSchema = createInsertSchema(videos).pick({
   title: true,
   description: true,
-  url: true,
+  fileData: true,
+}).extend({
+  fileData: z.string().optional(),
 });
 
 export type InsertVideo = z.infer<typeof insertVideoSchema>;

@@ -267,10 +267,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/videos", async (req, res) => {
     try {
-      const validatedData = insertVideoSchema.parse(req.body);
+      const { description, title, fileData } = req.body;
+      
+      // fileData (uploaded file) is required
+      if (!fileData) {
+        res.status(400).json({ error: "fileData is required" });
+        return;
+      }
+      
+      const validatedData = insertVideoSchema.parse({
+        description: description || "",
+        title: title || "",
+        fileData: fileData,
+      });
+      
       const video = await storage.createVideo(validatedData);
       res.status(201).json(video);
     } catch (error) {
+      console.error("Error creating video:", error);
       res.status(400).json({ error: "Invalid video data" });
     }
   });
