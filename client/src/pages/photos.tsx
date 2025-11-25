@@ -47,6 +47,8 @@ export default function PhotosPage() {
   const [zoom, setZoom] = useState(1);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     description: "",
     fileData: "",
@@ -357,16 +359,25 @@ export default function PhotosPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Hapus foto ini?")) return;
+    setPhotoToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!photoToDelete) return;
     try {
-      const response = await fetch(`/api/photos/${id}`, {
+      const response = await fetch(`/api/photos/${photoToDelete}`, {
         method: "DELETE",
       });
       if (response.ok) {
         fetchPhotos();
+        closePhotoViewer();
       }
     } catch (error) {
       console.error("Failed to delete photo:", error);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setPhotoToDelete(null);
     }
   };
 
@@ -500,12 +511,7 @@ export default function PhotosPage() {
             <div className="absolute top-6 right-6 flex gap-2 z-20">
               {isAdmin && (
                 <button
-                  onClick={() => {
-                    if (confirm("Hapus foto ini?")) {
-                      handleDelete(selectedPhoto.id);
-                      closePhotoViewer();
-                    }
-                  }}
+                  onClick={() => handleDelete(selectedPhoto.id)}
                   className="text-white hover:text-red-400 transition-colors p-2 hover:bg-black/30 rounded"
                   title="Hapus foto"
                 >
@@ -573,6 +579,32 @@ export default function PhotosPage() {
           Belum ada foto. Tambahkan foto pertama Anda!
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus Foto</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            Apakah Anda yakin ingin menghapus foto ini? Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <div className="flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+            >
+              Hapus
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
