@@ -496,13 +496,29 @@ export default function PhotosPage() {
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            {/* Close Button */}
-            <button
-              onClick={() => closePhotoViewer()}
-              className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors z-20"
-            >
-              <X className="h-10 w-10" />
-            </button>
+            {/* Admin Controls */}
+            <div className="absolute top-6 right-6 flex gap-2 z-20">
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    if (confirm("Hapus foto ini?")) {
+                      handleDelete(selectedPhoto.id);
+                      closePhotoViewer();
+                    }
+                  }}
+                  className="text-white hover:text-red-400 transition-colors p-2 hover:bg-black/30 rounded"
+                  title="Hapus foto"
+                >
+                  <Trash2 className="h-10 w-10" />
+                </button>
+              )}
+              <button
+                onClick={() => closePhotoViewer()}
+                className="text-white hover:text-gray-300 transition-colors z-20"
+              >
+                <X className="h-10 w-10" />
+              </button>
+            </div>
 
             {/* Loading Indicator */}
             {!selectedPhoto.fileData && !resolvedUrls[selectedPhoto.id] && (
