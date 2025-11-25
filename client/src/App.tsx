@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "@fontsource/inter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PhotosPage from "./pages/photos";
@@ -7,10 +7,22 @@ import StudentsPage from "./pages/students";
 import SettingsPage from "./pages/settings";
 import { GraduationCap, Image, Video, Settings, Users } from "lucide-react";
 import { ThemeProvider, useTheme } from "@/lib/theme";
+import { isAdminLoggedIn } from "@/lib/admin-auth";
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState("photos");
   const { theme } = useTheme();
+  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
+
+  useEffect(() => {
+    const checkAdminStatus = () => {
+      setIsAdmin(isAdminLoggedIn());
+    };
+    
+    // Check admin status every second
+    const interval = setInterval(checkAdminStatus, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div
@@ -71,10 +83,12 @@ function AppContent() {
               <Video className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Video</span>
             </TabsTrigger>
-            <TabsTrigger value="students" className="flex flex-col items-center gap-1 py-3 px-2">
-              <Users className="h-5 w-5" />
-              <span className="text-xs sm:text-sm hidden sm:inline">Siswa</span>
-            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="students" className="flex flex-col items-center gap-1 py-3 px-2">
+                <Users className="h-5 w-5" />
+                <span className="text-xs sm:text-sm hidden sm:inline">Siswa</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3 px-2">
               <Settings className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Atur</span>
@@ -89,9 +103,11 @@ function AppContent() {
             <VideosPage />
           </TabsContent>
 
-          <TabsContent value="students">
-            <StudentsPage />
-          </TabsContent>
+          {isAdmin && (
+            <TabsContent value="students">
+              <StudentsPage />
+            </TabsContent>
+          )}
 
           <TabsContent value="settings">
             <SettingsPage />
