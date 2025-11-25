@@ -63,19 +63,19 @@ function AppContent() {
                 : "bg-gray-100 border-gray-200 border"
             }`}
           >
-            <TabsTrigger value="photos" className="flex flex-col items-center gap-1 py-4 px-2">
+            <TabsTrigger value="photos" className="flex flex-col items-center gap-1 py-3 px-2">
               <Image className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Foto</span>
             </TabsTrigger>
-            <TabsTrigger value="videos" className="flex flex-col items-center gap-1 py-4 px-2">
+            <TabsTrigger value="videos" className="flex flex-col items-center gap-1 py-3 px-2">
               <Video className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Video</span>
             </TabsTrigger>
-            <TabsTrigger value="students" className="flex flex-col items-center gap-1 py-4 px-2">
+            <TabsTrigger value="students" className="flex flex-col items-center gap-1 py-3 px-2">
               <Users className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Siswa</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-4 px-2">
+            <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3 px-2">
               <Settings className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Atur</span>
             </TabsTrigger>
