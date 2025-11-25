@@ -57,26 +57,26 @@ function AppContent() {
       <main className="container mx-auto py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList
-            className={`grid w-full max-w-2xl mx-auto grid-cols-4 mb-6 py-3 ${
+            className={`grid w-full max-w-2xl mx-auto grid-cols-4 mb-6 py-2 ${
               theme === "dark"
                 ? "bg-slate-800 border-slate-700"
                 : "bg-white border"
             }`}
           >
-            <TabsTrigger value="photos" className="flex items-center gap-2 py-4">
-              <Image className="h-5 w-5" />
+            <TabsTrigger value="photos" className="flex items-center gap-2 py-5">
+              <Image className="h-4 w-4" />
               <span className="hidden sm:inline">Foto</span>
             </TabsTrigger>
-            <TabsTrigger value="videos" className="flex items-center gap-2 py-4">
-              <Video className="h-5 w-5" />
+            <TabsTrigger value="videos" className="flex items-center gap-2 py-5">
+              <Video className="h-4 w-4" />
               <span className="hidden sm:inline">Video</span>
             </TabsTrigger>
-            <TabsTrigger value="students" className="flex items-center gap-2 py-4">
-              <Users className="h-5 w-5" />
+            <TabsTrigger value="students" className="flex items-center gap-2 py-5">
+              <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Siswa</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 py-4">
-              <Settings className="h-5 w-5" />
+            <TabsTrigger value="settings" className="flex items-center gap-2 py-5">
+              <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Atur</span>
             </TabsTrigger>
           </TabsList>
