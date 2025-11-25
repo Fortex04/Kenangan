@@ -95,6 +95,7 @@ export default function VideosPage() {
       } else {
         const errorData = await response.json();
         console.error("Server error:", response.status, errorData);
+        alert(`Error: ${errorData.error || "Failed to upload video"}`);
       }
     } catch (error) {
       console.error("Failed to add video:", error);
