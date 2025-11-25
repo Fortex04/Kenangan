@@ -281,14 +281,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      // Check video size (Neon has 64MB limit, so max 30MB base64 = ~22MB actual)
+      // Check video size - max 400MB
       const videoSize = await getVideoSize(fileData);
       const videoSizeMB = videoSize / 1024 / 1024;
       console.log(`Video size: ${videoSizeMB.toFixed(2)}MB`);
       
-      if (videoSizeMB > 30) {
+      if (videoSizeMB > 400) {
         res.status(400).json({ 
-          error: "Video terlalu besar (max ~22MB video file)" 
+          error: "Video terlalu besar (max 400MB)" 
         });
         return;
       }
