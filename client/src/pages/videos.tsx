@@ -212,6 +212,7 @@ export default function VideosPage() {
                     src={video.fileData}
                     className="w-full h-full object-contain"
                     controls
+                    controlsList="nodownload"
                     title={video.title || "Video"}
                   />
                 ) : (
