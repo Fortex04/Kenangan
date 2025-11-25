@@ -62,13 +62,17 @@ export default function SettingsPage() {
     fetchReports();
   }, []);
 
-  const fetchReports = async () => {
+  const fetchReports = async (callback?: (data: Report[]) => void) => {
     try {
       setLoadingReports(true);
       const response = await fetch("/api/reports");
       if (!response.ok) throw new Error("Failed to fetch reports");
       const data = await response.json();
       setReports(data);
+      
+      if (callback) {
+        callback(data);
+      }
     } catch (err) {
       console.error("Error fetching reports:", err);
     } finally {
@@ -117,7 +121,15 @@ export default function SettingsPage() {
       setReportMessage("");
       setShowReportForm(false);
       toast.success("Report berhasil dikirim ke admin!");
-      await fetchReports();
+      await fetchReports((data) => {
+        // Keep selectedReport updated with fresh data
+        if (selectedReport) {
+          const updatedReport = data.find(r => r.id === selectedReport.id);
+          if (updatedReport) {
+            setSelectedReport(updatedReport);
+          }
+        }
+      });
     } catch (err) {
       console.error("Error submitting report:", err);
       toast.error("Gagal mengirim report");
@@ -143,11 +155,11 @@ export default function SettingsPage() {
       if (!response.ok) throw new Error("Failed to send reply");
       
       setReplyMessage("");
-      await fetchReports();
-      
-      // Re-select the report to see the new message
-      const updatedReport = reports.find(r => r.id === selectedReport.id);
-      if (updatedReport) setSelectedReport(updatedReport);
+      await fetchReports((data) => {
+        // Re-select the report to see the new message
+        const updatedReport = data.find(r => r.id === selectedReport.id);
+        if (updatedReport) setSelectedReport(updatedReport);
+      });
     } catch (err) {
       console.error("Error sending reply:", err);
       toast.error("Gagal mengirim balasan");
@@ -165,8 +177,14 @@ export default function SettingsPage() {
 
       if (!response.ok) throw new Error("Failed to close report");
       
-      setSelectedReport(null);
-      await fetchReports();
+      await fetchReports((data) => {
+        const updatedReport = data.find(r => r.id === selectedReport.id);
+        if (updatedReport) {
+          setSelectedReport(updatedReport);
+        } else {
+          setSelectedReport(null);
+        }
+      });
       toast.success("Report berhasil ditutup");
     } catch (err) {
       console.error("Error closing report:", err);
@@ -191,8 +209,10 @@ export default function SettingsPage() {
 
       if (!response.ok) throw new Error("Failed to delete report");
       
-      setSelectedReport(null);
-      await fetchReports();
+      await fetchReports((data) => {
+        // Report deleted, so it won't be in new data
+        setSelectedReport(null);
+      });
       toast.success("Report berhasil dihapus");
     } catch (err) {
       console.error("Error deleting report:", err);
