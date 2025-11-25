@@ -13,6 +13,12 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
 import { Moon, Sun, Info, Lock, LogOut, Send, MessageSquare, X, Trash2, AlertCircle } from "lucide-react";
@@ -572,81 +578,86 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Fitur Report */}
+        {/* Fitur dan Informasi - Accordion */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Fitur
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm leading-relaxed">
-            <div>
-              <p className="font-semibold mb-2">Report</p>
-              <p>
-                Pengguna dapat mengirimkan laporan atau keluhan langsung melalui aplikasi. Setiap laporan akan diterima dan ditinjau oleh admin, kemudian akan dibalas oleh admin.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          <Accordion type="single" collapsible className="w-full">
+            {/* Fitur */}
+            <AccordionItem value="fitur">
+              <AccordionTrigger className="hover:no-underline px-6">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  <span className="font-semibold">Fitur</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-4 space-y-4 text-sm leading-relaxed">
+                <div>
+                  <p className="font-semibold mb-2">Report</p>
+                  <p>
+                    Pengguna dapat mengirimkan laporan atau keluhan langsung melalui aplikasi. Setiap laporan akan diterima dan ditinjau oleh admin, kemudian akan dibalas oleh admin.
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
-        {/* Informasi */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Info className="h-5 w-5" />
-              Informasi
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm leading-relaxed">
-            <p>
-              Aplikasi ini dibuat khusus sebagai tempat menyimpan jejak waktu yang perlahan pergi.
-              Foto, video, nama siswa, dan nomor kontak dikumpulkan bukan sekadar sebagai data,
-              tapi sebagai potongan cerita yang suatu hari mungkin sulit kita temukan lagi.
-            </p>
+            {/* Informasi */}
+            <AccordionItem value="informasi">
+              <AccordionTrigger className="hover:no-underline px-6">
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  <span className="font-semibold">Informasi</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-4 space-y-4 text-sm leading-relaxed">
+                <p>
+                  Aplikasi ini dibuat khusus sebagai tempat menyimpan jejak waktu yang perlahan pergi.
+                  Foto, video, nama siswa, dan nomor kontak dikumpulkan bukan sekadar sebagai data,
+                  tapi sebagai potongan cerita yang suatu hari mungkin sulit kita temukan lagi.
+                </p>
 
-            <p>
-              Di sini, setiap momen direkam agar tetap hidup
-              tawa yang dulu memenuhi kelas, wajah-wajah yang berubah, dan langkah-langkah kecil
-              yang membawa kita ke tempat yang berbeda.
-            </p>
+                <p>
+                  Di sini, setiap momen direkam agar tetap hidup
+                  tawa yang dulu memenuhi kelas, wajah-wajah yang berubah, dan langkah-langkah kecil
+                  yang membawa kita ke tempat yang berbeda.
+                </p>
 
-            <p>
-              Melalui aplikasi ini, kamu dapat menelusuri kembali:
-            </p>
+                <p>
+                  Melalui aplikasi ini, kamu dapat menelusuri kembali:
+                </p>
 
-            <ul className="space-y-2 list-disc list-inside">
-              <li>Foto dan video kegiatan yang pernah membuat kita merasa dekat</li>
-              <li>Nama teman yang dulu setiap hari kita sapa</li>
-              <li>Kontak yang mungkin suatu saat jadi penghubung ketika jarak mulai terasa</li>
-              <li>Album kenangan yang tertata seperti halaman masa lalu yang tak ingin hilang</li>
-            </ul>
+                <ul className="space-y-2 list-disc list-inside">
+                  <li>Foto dan video kegiatan yang pernah membuat kita merasa dekat</li>
+                  <li>Nama teman yang dulu setiap hari kita sapa</li>
+                  <li>Kontak yang mungkin suatu saat jadi penghubung ketika jarak mulai terasa</li>
+                  <li>Album kenangan yang tertata seperti halaman masa lalu yang tak ingin hilang</li>
+                </ul>
 
-            <p>
-              Aplikasi ini hadir sebagai pengingat lembut,
-              bahwa kenangan bukan untuk dilupakan,
-              melainkan dijaga karena waktu tak selalu memberi kesempatan kedua
-              untuk melihat semuanya kembali secara utuh.
-            </p>
+                <p>
+                  Aplikasi ini hadir sebagai pengingat lembut,
+                  bahwa kenangan bukan untuk dilupakan,
+                  melainkan dijaga karena waktu tak selalu memberi kesempatan kedua
+                  untuk melihat semuanya kembali secara utuh.
+                </p>
 
-            <div className="border-t pt-4 mt-4">
-              <p>
-                Saya Akhmad Amri Gunawan, mengucapkan terima kasih.
-              </p>
+                <div className="border-t pt-4 mt-4">
+                  <p>
+                    Saya Akhmad Amri Gunawan, mengucapkan terima kasih.
+                  </p>
 
-              <p className="mt-3">
-                Terima kasih karena telah membuka, mengingat, dan menjaga kembali cerita yang pernah kita jalani bersama.
-              </p>
+                  <p className="mt-3">
+                    Terima kasih karena telah membuka, mengingat, dan menjaga kembali cerita yang pernah kita jalani bersama.
+                  </p>
 
-              <p className="mt-3">
-                Semoga setiap kenangan yang tersimpan di aplikasi ini menjadi pengingat,
-              </p>
+                  <p className="mt-3">
+                    Semoga setiap kenangan yang tersimpan di aplikasi ini menjadi pengingat,
+                  </p>
 
-              <p>
-                bahwa masa sekolah mungkin telah lewat... tapi jejaknya tetap ada, dan tidak benar-benar hilang.
-              </p>
-            </div>
-          </CardContent>
+                  <p>
+                    bahwa masa sekolah mungkin telah lewat... tapi jejaknya tetap ada, dan tidak benar-benar hilang.
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </div>
 
