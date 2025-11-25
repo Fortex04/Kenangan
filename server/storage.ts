@@ -22,8 +22,8 @@ import {
   type InsertReportMessage
 } from "@shared/schema";
 
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
+const sqlClient = neon(process.env.DATABASE_URL!);
+const db = drizzle(sqlClient);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
