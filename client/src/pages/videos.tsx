@@ -151,15 +151,6 @@ export default function VideosPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="title">Judul</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  disabled={uploading}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-              </div>
-              <div>
                 <Label htmlFor="description">Deskripsi</Label>
                 <Textarea
                   id="description"
