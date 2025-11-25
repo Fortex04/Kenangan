@@ -57,7 +57,7 @@ function AppContent() {
       <main className="container mx-auto py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList
-            className={`grid w-full max-w-2xl mx-auto grid-cols-4 mb-6 gap-1 px-2 py-2 pb-16 ${
+            className={`grid w-full max-w-2xl mx-auto grid-cols-4 mb-6 gap-1 px-2 py-1 pb-12 ${
               theme === "dark"
                 ? "bg-slate-800 border-slate-700"
                 : "bg-gray-100 border-gray-200 border"
