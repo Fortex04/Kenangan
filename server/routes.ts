@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertStudentSchema, insertPhotoSchema, insertVideoSchema } from "@shared/schema";
+import { insertStudentSchema, insertPhotoSchema, insertVideoSchema, insertReportSchema, insertReportMessageSchema } from "@shared/schema";
 import * as cheerio from "cheerio";
 import { compressImage, getVideoSize } from "./compression";
 
@@ -318,6 +318,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete video" });
+    }
+  });
+
+  // Reports routes
+  app.get("/api/reports", async (req, res) => {
+    try {
+      const reports = await storage.getAllReports();
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+      res.status(500).json({ error: "Failed to fetch reports" });
+    }
+  });
+
+  app.get("/api/reports/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const report = await storage.getReport(id);
+      if (!report) {
+        res.status(404).json({ error: "Report not found" });
+        return;
+      }
+      res.json(report);
+    } catch (error) {
+      console.error("Error fetching report:", error);
+      res.status(500).json({ error: "Failed to fetch report" });
+    }
+  });
+
+  app.post("/api/reports", async (req, res) => {
+    try {
+      const { subject, message } = req.body;
+      
+      if (!subject || !message) {
+        res.status(400).json({ error: "Subject and message are required" });
+        return;
+      }
+
+      const validatedReport = insertReportSchema.parse({ subject });
+      const report = await storage.createReport(validatedReport);
+      
+      // Add first message
+      const validatedMessage = insertReportMessageSchema.parse({
+        reportId: report.id,
+        senderType: "user",
+        message
+      });
+      await storage.addReportMessage(validatedMessage);
+      
+      res.status(201).json(report);
+    } catch (error) {
+      console.error("Error creating report:", error);
+      res.status(400).json({ error: "Invalid report data" });
+    }
+  });
+
+  app.post("/api/reports/:id/messages", async (req, res) => {
+    try {
+      const reportId = parseInt(req.params.id);
+      const { message, senderType } = req.body;
+      
+      if (!message || !senderType) {
+        res.status(400).json({ error: "Message and senderType are required" });
+        return;
+      }
+
+      const validatedMessage = insertReportMessageSchema.parse({
+        reportId,
+        senderType,
+        message
+      });
+      
+      const newMessage = await storage.addReportMessage(validatedMessage);
+      res.status(201).json(newMessage);
+    } catch (error) {
+      console.error("Error adding message:", error);
+      res.status(400).json({ error: "Invalid message data" });
+    }
+  });
+
+  app.patch("/api/reports/:id/close", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const report = await storage.closeReport(id);
+      if (!report) {
+        res.status(404).json({ error: "Report not found" });
+        return;
+      }
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to close report" });
     }
   });
 

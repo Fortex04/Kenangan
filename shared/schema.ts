@@ -68,3 +68,34 @@ export const insertVideoSchema = createInsertSchema(videos).pick({
 
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 export type Video = typeof videos.$inferSelect;
+
+export const reports = pgTable("reports", {
+  id: serial("id").primaryKey(),
+  subject: text("subject").notNull(),
+  status: text("status").default("open"), // open or closed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertReportSchema = createInsertSchema(reports).pick({
+  subject: true,
+});
+
+export type InsertReport = z.infer<typeof insertReportSchema>;
+export type Report = typeof reports.$inferSelect;
+
+export const reportMessages = pgTable("report_messages", {
+  id: serial("id").primaryKey(),
+  reportId: integer("report_id").notNull(),
+  senderType: text("sender_type").notNull(), // 'user' or 'admin'
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertReportMessageSchema = createInsertSchema(reportMessages).pick({
+  reportId: true,
+  senderType: true,
+  message: true,
+});
+
+export type InsertReportMessage = z.infer<typeof insertReportMessageSchema>;
+export type ReportMessage = typeof reportMessages.$inferSelect;

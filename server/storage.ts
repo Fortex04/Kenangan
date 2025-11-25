@@ -6,6 +6,8 @@ import {
   students,
   photos,
   videos,
+  reports,
+  reportMessages,
   type User, 
   type InsertUser,
   type Student,
@@ -13,7 +15,11 @@ import {
   type Photo,
   type InsertPhoto,
   type Video,
-  type InsertVideo
+  type InsertVideo,
+  type Report,
+  type InsertReport,
+  type ReportMessage,
+  type InsertReportMessage
 } from "@shared/schema";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -40,6 +46,14 @@ export interface IStorage {
   getVideo(id: number): Promise<Video | undefined>;
   createVideo(video: InsertVideo): Promise<Video>;
   deleteVideo(id: number): Promise<boolean>;
+  
+  getAllReports(): Promise<(Report & { messages: ReportMessage[] })[]>;
+  getReport(id: number): Promise<(Report & { messages: ReportMessage[] }) | undefined>;
+  createReport(report: InsertReport): Promise<Report>;
+  closeReport(id: number): Promise<Report | undefined>;
+  
+  getReportMessages(reportId: number): Promise<ReportMessage[]>;
+  addReportMessage(message: InsertReportMessage): Promise<ReportMessage>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -123,6 +137,43 @@ export class DatabaseStorage implements IStorage {
   async deleteVideo(id: number): Promise<boolean> {
     const result = await db.delete(videos).where(eq(videos.id, id)).returning();
     return result.length > 0;
+  }
+
+  async getAllReports(): Promise<(Report & { messages: ReportMessage[] })[]> {
+    const allReports = await db.select().from(reports);
+    const reportsWithMessages = await Promise.all(
+      allReports.map(async (report) => ({
+        ...report,
+        messages: await db.select().from(reportMessages).where(eq(reportMessages.reportId, report.id)),
+      }))
+    );
+    return reportsWithMessages;
+  }
+
+  async getReport(id: number): Promise<(Report & { messages: ReportMessage[] }) | undefined> {
+    const report = await db.select().from(reports).where(eq(reports.id, id));
+    if (!report[0]) return undefined;
+    const messages = await db.select().from(reportMessages).where(eq(reportMessages.reportId, id));
+    return { ...report[0], messages };
+  }
+
+  async createReport(report: InsertReport): Promise<Report> {
+    const result = await db.insert(reports).values(report).returning();
+    return result[0];
+  }
+
+  async closeReport(id: number): Promise<Report | undefined> {
+    const result = await db.update(reports).set({ status: "closed" }).where(eq(reports.id, id)).returning();
+    return result[0];
+  }
+
+  async getReportMessages(reportId: number): Promise<ReportMessage[]> {
+    return await db.select().from(reportMessages).where(eq(reportMessages.reportId, reportId));
+  }
+
+  async addReportMessage(message: InsertReportMessage): Promise<ReportMessage> {
+    const result = await db.insert(reportMessages).values(message).returning();
+    return result[0];
   }
 }
 
