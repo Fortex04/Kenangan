@@ -40,12 +40,10 @@ export default function SettingsPage() {
   const [loadingReports, setLoadingReports] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
 
-  // Fetch reports (for admin)
+  // Fetch reports untuk semua user (admin + regular)
   useEffect(() => {
-    if (isAdmin) {
-      fetchReports();
-    }
-  }, [isAdmin]);
+    fetchReports();
+  }, []);
 
   const fetchReports = async () => {
     try {
@@ -103,13 +101,14 @@ export default function SettingsPage() {
       setReportMessage("");
       setShowReportForm(false);
       alert("Report berhasil dikirim ke admin!");
+      await fetchReports();
     } catch (err) {
       console.error("Error submitting report:", err);
       alert("Gagal mengirim report");
     }
   };
 
-  const handleSendReply = async () => {
+  const handleSendReply = async (senderType: "admin" | "user") => {
     if (!selectedReport || !replyMessage.trim()) {
       alert("Balasan tidak boleh kosong!");
       return;
@@ -121,7 +120,7 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: replyMessage,
-          senderType: "admin",
+          senderType: senderType,
         }),
       });
 
@@ -316,7 +315,7 @@ export default function SettingsPage() {
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                onClick={handleSendReply}
+                                onClick={() => handleSendReply("admin")}
                                 className="flex-1"
                               >
                                 <Send className="mr-1 h-3 w-3" />
@@ -338,12 +337,12 @@ export default function SettingsPage() {
                 )}
               </div>
             ) : (
-              // User View - Report Form
-              <div>
+              // User View - Report Form + Report List
+              <div className="space-y-4">
                 {!showReportForm ? (
                   <Button onClick={() => setShowReportForm(true)} className="w-full">
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    Buat Report
+                    Buat Report Baru
                   </Button>
                 ) : (
                   <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
@@ -373,6 +372,111 @@ export default function SettingsPage() {
                       >
                         Batal
                       </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* User Reports List and Chat */}
+                {reports.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">Report Anda</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Reports List */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium mb-2">Daftar Report ({reports.length})</div>
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {reports.map((report) => (
+                            <div
+                              key={report.id}
+                              onClick={() => setSelectedReport(report)}
+                              className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                                selectedReport?.id === report.id
+                                  ? "bg-primary/10 border-primary"
+                                  : "bg-muted/50 border-border hover:bg-muted"
+                              }`}
+                            >
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">{report.subject}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(report.createdAt).toLocaleString("id-ID")}
+                                  </p>
+                                </div>
+                                <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                                  report.status === "open"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}>
+                                  {report.status === "open" ? "Buka" : "Tutup"}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Chat View */}
+                      {selectedReport && (
+                        <div className="flex flex-col border rounded-lg p-4 bg-muted/30">
+                          <div className="flex justify-between items-center mb-3">
+                            <div>
+                              <p className="font-semibold">{selectedReport.subject}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Status: {selectedReport.status === "open" ? "Buka" : "Tutup"}
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setSelectedReport(null)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+
+                          {/* Messages */}
+                          <div className="flex-1 space-y-3 mb-4 overflow-y-auto max-h-48">
+                            {selectedReport.messages.map((msg) => (
+                              <div
+                                key={msg.id}
+                                className={`p-2 rounded-lg text-sm ${
+                                  msg.senderType === "admin"
+                                    ? "bg-blue-100 text-blue-900 ml-4"
+                                    : "bg-green-100 text-green-900 mr-4"
+                                }`}
+                              >
+                                <p className="text-xs font-semibold mb-1">
+                                  {msg.senderType === "admin" ? "Admin" : "Anda"}
+                                </p>
+                                <p>{msg.message}</p>
+                                <p className="text-xs opacity-70 mt-1">
+                                  {new Date(msg.createdAt).toLocaleTimeString("id-ID")}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Reply Input */}
+                          {selectedReport.status === "open" && (
+                            <div className="space-y-2">
+                              <Textarea
+                                placeholder="Tulis balasan..."
+                                value={replyMessage}
+                                onChange={(e) => setReplyMessage(e.target.value)}
+                                className="min-h-20 text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => handleSendReply("user")}
+                                className="w-full"
+                              >
+                                <Send className="mr-1 h-3 w-3" />
+                                Kirim Balasan
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
