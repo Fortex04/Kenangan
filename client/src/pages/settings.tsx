@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "@/lib/theme";
-import { Moon, Sun, Info, Lock, LogOut, Send, MessageSquare, X } from "lucide-react";
+import { Moon, Sun, Info, Lock, LogOut, Send, MessageSquare, X, Trash2 } from "lucide-react";
 import { isAdminLoggedIn, loginAdmin, logoutAdmin } from "@/lib/admin-auth";
 
 type Report = {
@@ -155,6 +155,30 @@ export default function SettingsPage() {
     } catch (err) {
       console.error("Error closing report:", err);
       alert("Gagal menutup report");
+    }
+  };
+
+  const handleDeleteReport = async () => {
+    if (!selectedReport) return;
+
+    if (!confirm("Apakah Anda yakin ingin menghapus report ini? Tindakan ini tidak dapat dibatalkan.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/reports/${selectedReport.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete report");
+      
+      setSelectedReport(null);
+      await fetchReports();
+      alert("Report berhasil dihapus");
+    } catch (err) {
+      console.error("Error deleting report:", err);
+      alert("Gagal menghapus report");
     }
   };
 
@@ -330,6 +354,19 @@ export default function SettingsPage() {
                               </Button>
                             </div>
                           </div>
+                        )}
+
+                        {/* Delete Button (Admin Only) - Always visible */}
+                        {selectedReport && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={handleDeleteReport}
+                            className="w-full"
+                          >
+                            <Trash2 className="mr-1 h-3 w-3" />
+                            Hapus Report Selamanya
+                          </Button>
                         )}
                       </div>
                     )}

@@ -51,6 +51,7 @@ export interface IStorage {
   getReport(id: number): Promise<(Report & { messages: ReportMessage[] }) | undefined>;
   createReport(report: InsertReport): Promise<Report>;
   closeReport(id: number): Promise<Report | undefined>;
+  deleteReport(id: number): Promise<boolean>;
   
   getReportMessages(reportId: number): Promise<ReportMessage[]>;
   addReportMessage(message: InsertReportMessage): Promise<ReportMessage>;
@@ -165,6 +166,14 @@ export class DatabaseStorage implements IStorage {
   async closeReport(id: number): Promise<Report | undefined> {
     const result = await db.update(reports).set({ status: "closed" }).where(eq(reports.id, id)).returning();
     return result[0];
+  }
+
+  async deleteReport(id: number): Promise<boolean> {
+    // Delete all messages first
+    await db.delete(reportMessages).where(eq(reportMessages.reportId, id));
+    // Then delete the report
+    const result = await db.delete(reports).where(eq(reports.id, id)).returning();
+    return result.length > 0;
   }
 
   async getReportMessages(reportId: number): Promise<ReportMessage[]> {
