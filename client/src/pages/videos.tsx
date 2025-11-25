@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Loader } from "lucide-react";
+import { Trash2, Plus, Loader, Maximize } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { isAdminLoggedIn } from "@/lib/admin-auth";
 import type { Video } from "@shared/schema";
@@ -17,6 +17,7 @@ export default function VideosPage() {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
+  const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -27,6 +28,23 @@ export default function VideosPage() {
   useEffect(() => {
     setIsAdmin(isAdminLoggedIn());
   }, []);
+
+  const handleFullscreen = async (videoId: number) => {
+    const videoElement = videoRefs.current[videoId];
+    if (!videoElement) return;
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await videoElement.requestFullscreen().catch((err) => {
+          console.error("Fullscreen error:", err);
+        });
+      }
+    } catch (error) {
+      console.error("Fullscreen error:", error);
+    }
+  };
 
   const fetchVideos = async () => {
     try {
@@ -206,16 +224,29 @@ export default function VideosPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video mb-2 bg-black rounded-md">
+              <div className="aspect-video mb-2 bg-black relative">
                 {video.fileData ? (
-                  <video
-                    src={video.fileData}
-                    className="w-full h-full object-contain"
-                    controls
-                    controlsList="nodownload"
-                    allowFullScreen
-                    title={video.title || "Video"}
-                  />
+                  <>
+                    <video
+                      ref={(el) => {
+                        if (el) videoRefs.current[video.id] = el;
+                      }}
+                      src={video.fileData}
+                      className="w-full h-full object-contain"
+                      controls
+                      controlsList="nodownload"
+                      title={video.title || "Video"}
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleFullscreen(video.id)}
+                      className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+                      title="Fullscreen"
+                    >
+                      <Maximize className="h-4 w-4" />
+                    </Button>
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <span className="text-gray-400">No video</span>
