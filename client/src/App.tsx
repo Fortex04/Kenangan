@@ -83,12 +83,10 @@ function AppContent() {
               <Video className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Video</span>
             </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="students" className="flex flex-col items-center gap-1 py-3 px-2">
-                <Users className="h-5 w-5" />
-                <span className="text-xs sm:text-sm hidden sm:inline">Siswa</span>
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="students" className="flex flex-col items-center gap-1 py-3 px-2">
+              <Users className="h-5 w-5" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Siswa</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3 px-2">
               <Settings className="h-5 w-5" />
               <span className="text-xs sm:text-sm hidden sm:inline">Atur</span>
@@ -103,11 +101,9 @@ function AppContent() {
             <VideosPage />
           </TabsContent>
 
-          {isAdmin && (
-            <TabsContent value="students">
-              <StudentsPage />
-            </TabsContent>
-          )}
+          <TabsContent value="students">
+            <StudentsPage />
+          </TabsContent>
 
           <TabsContent value="settings">
             <SettingsPage />

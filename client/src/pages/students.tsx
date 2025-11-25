@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Plus, Edit } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import { isAdminLoggedIn } from "@/lib/admin-auth";
 import type { Student } from "@shared/schema";
 
 export default function StudentsPage() {
@@ -15,10 +16,20 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
   const [formData, setFormData] = useState({
     name: "",
     phoneNumber: "",
   });
+
+  useEffect(() => {
+    const checkAdminStatus = () => {
+      setIsAdmin(isAdminLoggedIn());
+    };
+    
+    const interval = setInterval(checkAdminStatus, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchStudents = async () => {
     try {
@@ -115,13 +126,14 @@ export default function StudentsPage() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className={`text-3xl font-bold ${theme === "dark" ? "text-white" : "text-gray-800"}`}>Daftar Siswa/Siswi</h1>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Siswa
-            </Button>
-          </DialogTrigger>
+        {isAdmin && (
+          <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Siswa
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
@@ -154,7 +166,8 @@ export default function StudentsPage() {
               <Button type="submit" className="w-full">Simpan</Button>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        )}
       </div>
 
       <Card>
@@ -168,7 +181,7 @@ export default function StudentsPage() {
                 <TableHead>No</TableHead>
                 <TableHead>Nama</TableHead>
                 <TableHead>Nomor Telepon</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+                {isAdmin && <TableHead className="text-right">Aksi</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -177,22 +190,24 @@ export default function StudentsPage() {
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{student.name}</TableCell>
                   <TableCell>{student.phoneNumber}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(student)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(student.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </TableCell>
+                  {isAdmin && (
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(student)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(student.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
