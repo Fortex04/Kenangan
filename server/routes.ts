@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertStudentSchema, insertPhotoSchema, insertVideoSchema } from "@shared/schema";
 import * as cheerio from "cheerio";
+import { compressImage, getVideoSize } from "./compression";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Students routes
@@ -219,13 +220,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/photos", async (req, res) => {
     try {
-      const { description, title, fileData } = req.body;
+      let { description, title, fileData } = req.body;
       
       // fileData (uploaded file) is required
       if (!fileData) {
         res.status(400).json({ error: "fileData is required" });
         return;
       }
+      
+      // Compress photo to ~1MB
+      console.log("Compressing photo...");
+      fileData = await compressImage(fileData, 1);
+      console.log("Photo compressed successfully");
       
       const validatedData = insertPhotoSchema.parse({
         description: description || "",
@@ -272,6 +278,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // fileData (uploaded file) is required
       if (!fileData) {
         res.status(400).json({ error: "fileData is required" });
+        return;
+      }
+      
+      // Check video size (warn if over 20MB, but allow up to 100MB base64 ~75MB actual)
+      const videoSize = await getVideoSize(fileData);
+      const videoSizeMB = videoSize / 1024 / 1024;
+      console.log(`Video size: ${videoSizeMB.toFixed(2)}MB`);
+      
+      if (videoSizeMB > 100) {
+        res.status(400).json({ 
+          error: "Video terlalu besar (max ~75MB video file atau ~100MB base64)" 
+        });
         return;
       }
       
