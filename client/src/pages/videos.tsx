@@ -206,13 +206,14 @@ export default function VideosPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video mb-2 bg-black rounded-md overflow-hidden">
+              <div className="aspect-video mb-2 bg-black rounded-md">
                 {video.fileData ? (
                   <video
                     src={video.fileData}
                     className="w-full h-full object-contain"
                     controls
                     controlsList="nodownload"
+                    allowFullScreen
                     title={video.title || "Video"}
                   />
                 ) : (
