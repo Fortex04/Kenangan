@@ -506,25 +506,6 @@ export default function SettingsPage() {
                             ))}
                           </div>
 
-                          {/* Reply Input */}
-                          {selectedReport.status === "open" && (
-                            <div className="space-y-2">
-                              <Textarea
-                                placeholder="Tulis balasan..."
-                                value={replyMessage}
-                                onChange={(e) => setReplyMessage(e.target.value)}
-                                className="min-h-20 text-sm"
-                              />
-                              <Button
-                                size="sm"
-                                onClick={() => handleSendReply("user")}
-                                className="w-full"
-                              >
-                                <Send className="mr-1 h-3 w-3" />
-                                Kirim Balasan
-                              </Button>
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>
