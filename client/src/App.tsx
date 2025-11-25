@@ -64,19 +64,19 @@ function AppContent() {
             }`}
           >
             <TabsTrigger value="photos" className="flex items-start gap-2 pt-0 pb-3">
-              <Image className="h-5 w-5 mt-6" />
+              <Image className="h-5 w-5 mt-0 mb-6" />
               <span className="hidden sm:inline">Foto</span>
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-start gap-2 pt-0 pb-3">
-              <Video className="h-5 w-5 mt-6" />
+              <Video className="h-5 w-5 mt-0 mb-6" />
               <span className="hidden sm:inline">Video</span>
             </TabsTrigger>
             <TabsTrigger value="students" className="flex items-start gap-2 pt-0 pb-3">
-              <Users className="h-5 w-5 mt-6" />
+              <Users className="h-5 w-5 mt-0 mb-6" />
               <span className="hidden sm:inline">Siswa</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-start gap-2 pt-0 pb-3">
-              <Settings className="h-5 w-5 mt-6" />
+              <Settings className="h-5 w-5 mt-0 mb-6" />
               <span className="hidden sm:inline">Atur</span>
             </TabsTrigger>
           </TabsList>
