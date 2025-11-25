@@ -496,7 +496,7 @@ export default function SettingsPage() {
                                 }`}
                               >
                                 <p className="text-xs font-semibold mb-1">
-                                  {msg.senderType === "admin" ? "Admin" : "Anda"}
+                                  {msg.senderType === "admin" ? "Admin" : "user"}
                                 </p>
                                 <p>{msg.message}</p>
                                 <p className="text-xs opacity-70 mt-1">
