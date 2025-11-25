@@ -63,19 +63,19 @@ function AppContent() {
                 : "bg-white border"
             }`}
           >
-            <TabsTrigger value="photos" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="photos" className="flex items-center gap-2 pt-4 pb-3">
               <Image className="h-5 w-5" />
               <span className="hidden sm:inline">Foto</span>
             </TabsTrigger>
-            <TabsTrigger value="videos" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="videos" className="flex items-center gap-2 pt-4 pb-3">
               <Video className="h-5 w-5" />
               <span className="hidden sm:inline">Video</span>
             </TabsTrigger>
-            <TabsTrigger value="students" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="students" className="flex items-center gap-2 pt-4 pb-3">
               <Users className="h-5 w-5" />
               <span className="hidden sm:inline">Siswa</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="settings" className="flex items-center gap-2 pt-4 pb-3">
               <Settings className="h-5 w-5" />
               <span className="hidden sm:inline">Atur</span>
             </TabsTrigger>
