@@ -57,27 +57,27 @@ function AppContent() {
       <main className="container mx-auto py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList
-            className={`grid w-full max-w-2xl mx-auto grid-cols-4 mb-6 py-2 ${
+            className={`grid w-full max-w-2xl mx-auto grid-cols-4 mb-6 gap-1 p-2 ${
               theme === "dark"
                 ? "bg-slate-800 border-slate-700"
-                : "bg-white border"
+                : "bg-gray-100 border-gray-200 border"
             }`}
           >
-            <TabsTrigger value="photos" className="flex items-center gap-2 py-3">
-              <Image className="h-5 w-5 mb-12" />
-              <span className="hidden sm:inline">Foto</span>
+            <TabsTrigger value="photos" className="flex flex-col items-center gap-1 py-4 px-2">
+              <Image className="h-5 w-5" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Foto</span>
             </TabsTrigger>
-            <TabsTrigger value="videos" className="flex items-center gap-2 py-3">
-              <Video className="h-5 w-5 mb-12" />
-              <span className="hidden sm:inline">Video</span>
+            <TabsTrigger value="videos" className="flex flex-col items-center gap-1 py-4 px-2">
+              <Video className="h-5 w-5" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Video</span>
             </TabsTrigger>
-            <TabsTrigger value="students" className="flex items-center gap-2 py-3">
-              <Users className="h-5 w-5 mb-12" />
-              <span className="hidden sm:inline">Siswa</span>
+            <TabsTrigger value="students" className="flex flex-col items-center gap-1 py-4 px-2">
+              <Users className="h-5 w-5" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Siswa</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 py-3">
-              <Settings className="h-5 w-5 mb-12" />
-              <span className="hidden sm:inline">Atur</span>
+            <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-4 px-2">
+              <Settings className="h-5 w-5" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Atur</span>
             </TabsTrigger>
           </TabsList>
 
