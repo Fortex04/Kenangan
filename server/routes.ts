@@ -281,14 +281,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      // Check video size (warn if over 20MB, but allow up to 100MB base64 ~75MB actual)
+      // Check video size (allow up to 150MB base64 ~110MB actual video)
       const videoSize = await getVideoSize(fileData);
       const videoSizeMB = videoSize / 1024 / 1024;
       console.log(`Video size: ${videoSizeMB.toFixed(2)}MB`);
       
-      if (videoSizeMB > 100) {
+      if (videoSizeMB > 150) {
         res.status(400).json({ 
-          error: "Video terlalu besar (max ~75MB video file atau ~100MB base64)" 
+          error: "Video terlalu besar (max ~110MB video file)" 
         });
         return;
       }
