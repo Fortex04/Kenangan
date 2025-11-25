@@ -64,7 +64,11 @@ export default function VideosPage() {
           console.error("FileReader error:", reader.error);
           reject(reader.error);
         };
-        reader.readAsDataURL(formData.file);
+        if (formData.file) {
+          reader.readAsDataURL(formData.file);
+        } else {
+          reject(new Error("No file selected"));
+        }
       });
       
       const videoData = {
