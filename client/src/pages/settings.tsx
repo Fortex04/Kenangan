@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
-import { Moon, Sun, Info, Lock, LogOut, Send, MessageSquare, X, Trash2 } from "lucide-react";
+import { Moon, Sun, Info, Lock, LogOut, Send, MessageSquare, X, Trash2, AlertCircle } from "lucide-react";
 import { isAdminLoggedIn, loginAdmin, logoutAdmin } from "@/lib/admin-auth";
 
 type Report = {
@@ -567,6 +567,24 @@ export default function SettingsPage() {
               <p>
                 Pilih tema yang nyaman untuk mata Anda. Preferensi Anda akan
                 disimpan secara otomatis.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Fitur Report */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Fitur
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm leading-relaxed">
+            <div>
+              <p className="font-semibold mb-2">Report</p>
+              <p>
+                Pengguna dapat mengirimkan laporan atau keluhan langsung melalui aplikasi. Setiap laporan akan diterima dan ditinjau oleh admin, kemudian akan dibalas oleh admin.
               </p>
             </div>
           </CardContent>
