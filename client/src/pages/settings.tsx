@@ -5,6 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useTheme } from "@/lib/theme";
 import { Moon, Sun, Info, Lock, LogOut, Send, MessageSquare, X, Trash2 } from "lucide-react";
 import { isAdminLoggedIn, loginAdmin, logoutAdmin } from "@/lib/admin-auth";
@@ -39,6 +47,9 @@ export default function SettingsPage() {
   const [replyMessage, setReplyMessage] = useState("");
   const [loadingReports, setLoadingReports] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
+
+  // Confirmation dialog states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch reports untuk semua user (admin + regular)
   useEffect(() => {
@@ -159,11 +170,13 @@ export default function SettingsPage() {
   };
 
   const handleDeleteReport = async () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteReport = async () => {
     if (!selectedReport) return;
 
-    if (!confirm("Apakah Anda yakin ingin menghapus report ini? Tindakan ini tidak dapat dibatalkan.")) {
-      return;
-    }
+    setShowDeleteConfirm(false);
 
     try {
       const response = await fetch(`/api/reports/${selectedReport.id}`, {
@@ -617,6 +630,22 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Hapus Report?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin menghapus report ini? Tindakan ini tidak dapat dibatalkan.
+          </AlertDialogDescription>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteReport} className="bg-destructive text-destructive-foreground">
+              Hapus
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
