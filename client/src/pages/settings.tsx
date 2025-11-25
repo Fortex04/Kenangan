@@ -49,7 +49,6 @@ export default function SettingsPage() {
   // Report states
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [reportSubject, setReportSubject] = useState("");
   const [reportMessage, setReportMessage] = useState("");
   const [replyMessage, setReplyMessage] = useState("");
   const [loadingReports, setLoadingReports] = useState(false);
@@ -98,8 +97,8 @@ export default function SettingsPage() {
   };
 
   const handleSubmitReport = async () => {
-    if (!reportSubject.trim() || !reportMessage.trim()) {
-      toast.error("Subjek dan pesan tidak boleh kosong!");
+    if (!reportMessage.trim()) {
+      toast.error("Pesan tidak boleh kosong!");
       return;
     }
 
@@ -108,14 +107,13 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          subject: reportSubject,
+          subject: reportMessage,
           message: reportMessage,
         }),
       });
 
       if (!response.ok) throw new Error("Failed to create report");
       
-      setReportSubject("");
       setReportMessage("");
       setShowReportForm(false);
       toast.success("Report berhasil dikirim ke admin!");
@@ -406,11 +404,6 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground">
                       Kirim laporan atau masukan Anda kepada admin. Admin akan membalasnya di chat ini.
                     </p>
-                    <Input
-                      placeholder="Subjek / Judul report"
-                      value={reportSubject}
-                      onChange={(e) => setReportSubject(e.target.value)}
-                    />
                     <Textarea
                       placeholder="Ceritakan masalah atau masukan Anda..."
                       value={reportMessage}
