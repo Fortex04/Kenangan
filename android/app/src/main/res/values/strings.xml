@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kenangan Kelas</string>
+    <string name="title_activity_main">Kenangan Kelas</string>
+    <string name="package_name">com.kenangan.kelas.app</string>
+    <string name="custom_url_scheme">com.kenangan.kelas.app</string>
+</resources>
