@@ -13,6 +13,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
 import { Moon, Sun, Info, Lock, LogOut, Send, MessageSquare, X, Trash2 } from "lucide-react";
 import { isAdminLoggedIn, loginAdmin, logoutAdmin } from "@/lib/admin-auth";
@@ -92,7 +93,7 @@ export default function SettingsPage() {
 
   const handleSubmitReport = async () => {
     if (!reportSubject.trim() || !reportMessage.trim()) {
-      alert("Subjek dan pesan tidak boleh kosong!");
+      toast.error("Subjek dan pesan tidak boleh kosong!");
       return;
     }
 
@@ -111,17 +112,17 @@ export default function SettingsPage() {
       setReportSubject("");
       setReportMessage("");
       setShowReportForm(false);
-      alert("Report berhasil dikirim ke admin!");
+      toast.success("Report berhasil dikirim ke admin!");
       await fetchReports();
     } catch (err) {
       console.error("Error submitting report:", err);
-      alert("Gagal mengirim report");
+      toast.error("Gagal mengirim report");
     }
   };
 
   const handleSendReply = async (senderType: "admin" | "user") => {
     if (!selectedReport || !replyMessage.trim()) {
-      alert("Balasan tidak boleh kosong!");
+      toast.error("Balasan tidak boleh kosong!");
       return;
     }
 
@@ -145,7 +146,7 @@ export default function SettingsPage() {
       if (updatedReport) setSelectedReport(updatedReport);
     } catch (err) {
       console.error("Error sending reply:", err);
-      alert("Gagal mengirim balasan");
+      toast.error("Gagal mengirim balasan");
     }
   };
 
@@ -162,10 +163,10 @@ export default function SettingsPage() {
       
       setSelectedReport(null);
       await fetchReports();
-      alert("Report berhasil ditutup");
+      toast.success("Report berhasil ditutup");
     } catch (err) {
       console.error("Error closing report:", err);
-      alert("Gagal menutup report");
+      toast.error("Gagal menutup report");
     }
   };
 
@@ -188,10 +189,10 @@ export default function SettingsPage() {
       
       setSelectedReport(null);
       await fetchReports();
-      alert("Report berhasil dihapus");
+      toast.success("Report berhasil dihapus");
     } catch (err) {
       console.error("Error deleting report:", err);
-      alert("Gagal menghapus report");
+      toast.error("Gagal menghapus report");
     }
   };
 
