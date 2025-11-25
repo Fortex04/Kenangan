@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus, Loader } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import { isAdminLoggedIn } from "@/lib/admin-auth";
 import type { Video } from "@shared/schema";
 
 export default function VideosPage() {
@@ -15,11 +16,17 @@ export default function VideosPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     file: null as File | null | undefined,
   });
+
+  // Check admin status on mount
+  useEffect(() => {
+    setIsAdmin(isAdminLoggedIn());
+  }, []);
 
   const fetchVideos = async () => {
     try {
@@ -130,13 +137,14 @@ export default function VideosPage() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className={`text-3xl font-bold ${theme === "dark" ? "text-white" : "text-gray-800"}`}>Album Video</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Video
-            </Button>
-          </DialogTrigger>
+        {isAdmin && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Video
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Tambah Video Baru</DialogTitle>
@@ -177,6 +185,7 @@ export default function VideosPage() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,13 +194,15 @@ export default function VideosPage() {
             <CardHeader>
               <CardTitle className="flex justify-between items-start">
                 <span>{video.title || "Video"}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(video.id)}
-                >
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(video.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>

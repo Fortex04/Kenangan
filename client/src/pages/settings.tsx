@@ -1,17 +1,87 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTheme } from "@/lib/theme";
-import { Moon, Sun, Info } from "lucide-react";
+import { Moon, Sun, Info, Lock, LogOut } from "lucide-react";
+import { isAdminLoggedIn, loginAdmin, logoutAdmin } from "@/lib/admin-auth";
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
+  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleAdminLogin = () => {
+    if (loginAdmin(password)) {
+      setIsAdmin(true);
+      setPassword("");
+      setError("");
+    } else {
+      setError("Password salah!");
+      setPassword("");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    logoutAdmin();
+    setIsAdmin(false);
+    setPassword("");
+    setError("");
+  };
 
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Pengaturan Aplikasi</h1>
 
       <div className="space-y-6 max-w-2xl">
+        {/* Admin Login */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Admin Access
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!isAdmin ? (
+              <div className="space-y-3">
+                <Input
+                  type="password"
+                  placeholder="Masukkan password admin"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError("");
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleAdminLogin();
+                    }
+                  }}
+                />
+                {error && <p className="text-sm text-red-500">{error}</p>}
+                <Button onClick={handleAdminLogin} className="w-full">
+                  Login Admin
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-green-600 font-medium">✓ Admin Terlogin</p>
+                <p className="text-sm text-muted-foreground">
+                  Anda sekarang dapat upload/delete foto dan video di menu Foto dan Album Video
+                </p>
+                <Button onClick={handleAdminLogout} variant="destructive" className="w-full">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Tema Aplikasi */}
         <Card>
           <CardHeader>

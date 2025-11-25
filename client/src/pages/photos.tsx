@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus, X, Loader } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import { isAdminLoggedIn } from "@/lib/admin-auth";
 import type { Photo } from "@shared/schema";
 
 // Helper function to get resolved image URL with proxy
@@ -40,6 +41,7 @@ export default function PhotosPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [resolvedUrls, setResolvedUrls] = useState<Record<number, string>>({});
   const [zoom, setZoom] = useState(1);
@@ -50,6 +52,11 @@ export default function PhotosPage() {
     fileData: "",
     file: null as File | null,
   });
+
+  // Check admin status on mount and when page becomes visible
+  useEffect(() => {
+    setIsAdmin(isAdminLoggedIn());
+  }, []);
 
   // Touch state tracking
   const touchStateRef = useRef({
@@ -375,13 +382,14 @@ export default function PhotosPage() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className={`text-3xl font-bold ${theme === "dark" ? "text-white" : "text-gray-800"}`}>Foto</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Foto
-            </Button>
-          </DialogTrigger>
+        {isAdmin && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Foto
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Tambah Foto Baru</DialogTitle>
@@ -423,6 +431,7 @@ export default function PhotosPage() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <div className="grid gap-3" style={{
@@ -444,17 +453,19 @@ export default function PhotosPage() {
                 target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ccc" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
               }}
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(photo.id);
-              }}
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </Button>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(photo.id);
+                }}
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            )}
             {photo.description && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <p className="text-sm text-white line-clamp-2">{photo.description}</p>
